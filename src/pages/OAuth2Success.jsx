@@ -1,23 +1,32 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const OAuth2Success = () => {
   const navigate = useNavigate();
+  const [status, setStatus] = useState('Processing...');
 
   useEffect(() => {
-    // URL se token, email, role lo
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
     const email = params.get('email');
     const role  = params.get('role');
 
-    if (token) {
-      // localStorage mein save karo
+    if (token && email && role) {
+      // LocalStorage mein save karo
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify({ token, email, role }));
-      navigate('/dashboard');
+
+      setStatus('Login successful! Redirecting...');
+
+      // Thoda wait karo phir redirect karo
+      setTimeout(() => {
+        navigate('/dashboard', { replace: true });
+      }, 500);
     } else {
-      navigate('/login');
+      setStatus('Login failed! Redirecting...');
+      setTimeout(() => {
+        navigate('/login', { replace: true });
+      }, 1000);
     }
   }, []);
 
@@ -25,7 +34,7 @@ const OAuth2Success = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow text-center">
         <div className="text-4xl mb-4">⏳</div>
-        <p className="text-gray-600">Google Login ho raha hai...</p>
+        <p className="text-gray-600">{status}</p>
       </div>
     </div>
   );

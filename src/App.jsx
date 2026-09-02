@@ -8,7 +8,14 @@ import OAuth2Success from "./pages/OAuth2Success";
 
 const PrivateRoute = ({ children }) => {
   const { user } = useAuth();
-  return user ? children : <Navigate to="/login" />;
+  const token = localStorage.getItem("token");
+  const storedUser = localStorage.getItem("user");
+
+  if (!user && !token && !storedUser) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
 };
 
 const AppRoutes = () => {
