@@ -27,10 +27,7 @@ const Login = () => {
     setError("");
 
     try {
-      const result = await login(
-        formData.email,
-        formData.password
-      );
+      const result = await login(formData.email, formData.password);
 
       if (!result.success) {
         setError(result.message);
@@ -45,10 +42,8 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-gradient-to-br from-slate-50 to-slate-100">
-
       {/* Login Card */}
       <div className="w-full max-w-md bg-white p-8 sm:p-12 rounded-[20px] border border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.15)] animate-[slideUp_0.6s_ease-out]">
-
         {/* Heading */}
         <h2 className="text-center text-4xl font-bold mb-2 bg-gradient-to-r from-indigo-500 to-pink-500 bg-clip-text text-transparent">
           ✈️ TripNest Login
@@ -67,7 +62,6 @@ const Login = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-
           {/* Email */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -110,8 +104,31 @@ const Login = () => {
           >
             {loading ? "Logging in..." : "Login"}
           </button>
-
         </form>
+        {/* Divider */}
+        <div className="flex items-center my-4">
+          <div className="flex-1 border-t border-gray-300"></div>
+
+          <span className="px-3 text-sm text-gray-500">ya</span>
+
+          <div className="flex-1 border-t border-gray-300"></div>
+        </div>
+
+        {/* Google Login Button */}
+        <a
+          href="http://localhost:8080/oauth2/authorization/google"
+          className="w-full flex items-center justify-center gap-3 border border-gray-300 rounded py-2 hover:bg-gray-50 transition"
+        >
+          <img
+            src="https://www.google.com/favicon.ico"
+            alt="Google"
+            className="w-5 h-5"
+          />
+
+          <span className="text-sm font-medium text-gray-700">
+            Login with Google
+          </span>
+        </a>
 
         {/* Register */}
         <p className="text-center mt-6 text-slate-500">
@@ -120,10 +137,9 @@ const Login = () => {
             to="/register"
             className="text-indigo-500 font-semibold transition-colors duration-300 hover:text-pink-500 hover:underline"
           >
-           Register here
+            Register here
           </Link>
         </p>
-
       </div>
     </div>
   );
