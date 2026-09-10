@@ -6,7 +6,6 @@ import Register from "./pages/Register";
 import OAuth2Success from "./pages/OAuth2Success";
 
 import TravelerDashboard from "./pages/dashboards/TravelerDashboard";
-import GroupAdminDashboard from "./pages/dashboards/GroupAdminDashboard";
 import AdminDashboard from "./pages/dashboards/AdminDashboard";
 
 import RoleRoute from "./routes/RoleRoute";
@@ -26,16 +25,12 @@ const PrivateRoute = ({ children }) => {
 const DashboardRedirect = () => {
   const { user } = useAuth();
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!user) return <Navigate to="/login" replace />;
 
   switch (user.role) {
     case "TRAVELER":
-      return <Navigate to="/dashboard/traveler" replace />;
-
     case "GROUP_ADMIN":
-      return <Navigate to="/dashboard/group-admin" replace />;
+      return <Navigate to="/dashboard/traveler" replace />;
 
     case "ADMIN":
       return <Navigate to="/dashboard/admin" replace />;
@@ -72,15 +67,6 @@ const AppRoutes = () => {
         <Route
           path="/dashboard/traveler"
           element={<TravelerDashboard />}
-        />
-      </Route>
-
-
-      {/* Group Admin Routes */}
-      <Route element={<RoleRoute allowedRole="GROUP_ADMIN" />}>
-        <Route
-          path="/dashboard/group-admin"
-          element={<GroupAdminDashboard />}
         />
       </Route>
 

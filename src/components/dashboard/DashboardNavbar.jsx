@@ -8,54 +8,116 @@ const DashboardNavbar = () => {
 
   const role = user?.role;
 
-  const dashboardPath = {
-    TRAVELER: '/dashboard/traveler',
-    GROUP_ADMIN: '/dashboard/group-admin',
-    ADMIN: '/dashboard/admin',
-  };
+  // =====================================================
+  // DASHBOARD PATH
+  // =====================================================
 
-  const navItems = {
-    TRAVELER: [
-      { label: 'Dashboard', icon: '🏠', path: '/dashboard/traveler' },
-      { label: 'My Trips', icon: '✈️', path: '/trips' },
-      { label: 'Explore', icon: '🗺️', path: '/explore' },
-      { label: 'Budget', icon: '💰', path: '/budget' },
-      { label: 'Groups', icon: '👥', path: '/groups' },
-      { label: 'Favorites', icon: '❤️', path: '/favorites' },
-    ],
+  const dashboardPath =
+    role === 'ADMIN'
+      ? '/dashboard/admin'
+      : '/dashboard/traveler';
 
-    GROUP_ADMIN: [
-      { label: 'Dashboard', icon: '🏠', path: '/dashboard/group-admin' },
-      { label: 'My Groups', icon: '👥', path: '/groups' },
-      { label: 'Members', icon: '🧑‍🤝‍🧑', path: '/members' },
-      { label: 'Itineraries', icon: '🗓️', path: '/itineraries' },
-      { label: 'Group Expenses', icon: '💰', path: '/group-expenses' },
-      { label: 'Discussions', icon: '💬', path: '/discussions' },
-    ],
 
-    ADMIN: [
-      { label: 'Dashboard', icon: '🏠', path: '/dashboard/admin' },
-      { label: 'Users', icon: '👥', path: '/users' },
-      { label: 'Trips', icon: '✈️', path: '/trips' },
-      { label: 'Destinations', icon: '🌍', path: '/destinations' },
-      { label: 'Reports', icon: '📊', path: '/reports' },
-      { label: 'Settings', icon: '⚙️', path: '/settings' },
-    ],
-  };
+  // =====================================================
+  // NAVIGATION ITEMS
+  // =====================================================
 
-  const currentItems = navItems[role] || navItems.TRAVELER;
+  const userNavItems = [
+    {
+      label: 'Dashboard',
+      icon: '🏠',
+      path: '/dashboard/traveler',
+    },
+    {
+      label: 'My Trips',
+      icon: '✈️',
+      path: '/trips',
+    },
+    {
+      label: 'Explore',
+      icon: '🗺️',
+      path: '/explore',
+    },
+    {
+      label: 'Budget',
+      icon: '💰',
+      path: '/budget',
+    },
+    {
+      label: 'Groups',
+      icon: '👥',
+      path: '/groups',
+    },
+    {
+      label: 'Favorites',
+      icon: '❤️',
+      path: '/favorites',
+    },
+  ];
 
-  const roleLabels = {
-    TRAVELER: 'Traveler',
-    GROUP_ADMIN: 'Group Admin',
-    ADMIN: 'Administrator',
-  };
 
-  const currentRole = roleLabels[role] || 'Traveler';
+  const adminNavItems = [
+    {
+      label: 'Dashboard',
+      icon: '🏠',
+      path: '/dashboard/admin',
+    },
+    {
+      label: 'Users',
+      icon: '👥',
+      path: '/users',
+    },
+    {
+      label: 'Trips',
+      icon: '✈️',
+      path: '/trips',
+    },
+    {
+      label: 'Destinations',
+      icon: '🌍',
+      path: '/destinations',
+    },
+    {
+      label: 'Reports',
+      icon: '📊',
+      path: '/reports',
+    },
+    {
+      label: 'Settings',
+      icon: '⚙️',
+      path: '/settings',
+    },
+  ];
+
+
+  // =====================================================
+  // SELECT NAVIGATION BASED ONLY ON ADMIN VS USER
+  // =====================================================
+
+  const currentItems =
+    role === 'ADMIN'
+      ? adminNavItems
+      : userNavItems;
+
+
+  // =====================================================
+  // DISPLAY ROLE
+  // =====================================================
+
+  const currentRole =
+    role === 'ADMIN'
+      ? 'Administrator'
+      : 'User';
+
+
+  // =====================================================
+  // CLOSE MOBILE MENU
+  // =====================================================
 
   const closeMenu = () => {
     setIsOpen(false);
   };
+
 
   return (
     <>
@@ -63,33 +125,38 @@ const DashboardNavbar = () => {
           MOBILE HEADER
       ====================================================== */}
 
-      <header className="
-        lg:hidden
-        fixed
-        top-0
-        left-0
-        right-0
-        z-50
-        bg-white/90
-        backdrop-blur-xl
-        border-b
-        border-gray-200
-        px-5
-        py-4
-      ">
+      <header
+        className="
+          lg:hidden
+          fixed
+          top-0
+          left-0
+          right-0
+          z-50
+          bg-white/90
+          backdrop-blur-xl
+          border-b
+          border-gray-200
+          px-5
+          py-4
+        "
+      >
 
         <div className="flex items-center justify-between">
 
           <NavLink
-            to={dashboardPath[role] || '/dashboard'}
+            to={dashboardPath}
+            onClick={closeMenu}
             className="text-xl font-bold text-slate-800"
           >
             ✈️ <span className="text-blue-600">Trip</span>Nest
           </NavLink>
 
+
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="text-2xl text-slate-700"
+            aria-label="Toggle navigation menu"
           >
             {isOpen ? '✕' : '☰'}
           </button>
@@ -145,40 +212,48 @@ const DashboardNavbar = () => {
             LOGO
         ================================================== */}
 
-        <div className="
-          px-7
-          py-7
-          border-b
-          border-gray-100
-        ">
+        <div
+          className="
+            px-7
+            py-7
+            border-b
+            border-gray-100
+          "
+        >
 
           <NavLink
-            to={dashboardPath[role] || '/dashboard'}
+            to={dashboardPath}
             onClick={closeMenu}
             className="text-2xl font-bold text-slate-800"
           >
             ✈️ <span className="text-blue-600">Trip</span>Nest
           </NavLink>
 
+
           <p className="text-xs text-gray-500 mt-2">
             Your journey, beautifully planned.
           </p>
 
-          {/* Role badge */}
 
-          <div className="
-            inline-flex
-            items-center
-            gap-2
-            mt-4
-            px-3
-            py-1.5
-            rounded-full
-            bg-blue-50
-            text-blue-600
-            text-xs
-            font-semibold
-          ">
+          {/* =================================================
+              ACCOUNT TYPE BADGE
+          ================================================== */}
+
+          <div
+            className="
+              inline-flex
+              items-center
+              gap-2
+              mt-4
+              px-3
+              py-1.5
+              rounded-full
+              bg-blue-50
+              text-blue-600
+              text-xs
+              font-semibold
+            "
+          >
             <span>●</span>
             {currentRole}
           </div>
@@ -190,27 +265,29 @@ const DashboardNavbar = () => {
             NAVIGATION
         ================================================== */}
 
-        <nav className="
-          flex-1
-          px-4
-          py-6
-          overflow-y-auto
-        ">
+        <nav
+          className="
+            flex-1
+            px-4
+            py-6
+            overflow-y-auto
+          "
+        >
 
-          <p className="
-            px-3
-            mb-3
-            text-xs
-            font-semibold
-            uppercase
-            tracking-wider
-            text-gray-400
-          ">
+          <p
+            className="
+              px-3
+              mb-3
+              text-xs
+              font-semibold
+              uppercase
+              tracking-wider
+              text-gray-400
+            "
+          >
             {role === 'ADMIN'
               ? 'Administration'
-              : role === 'GROUP_ADMIN'
-                ? 'Group Management'
-                : 'Travel'}
+              : 'Travel'}
           </p>
 
 
@@ -242,13 +319,16 @@ const DashboardNavbar = () => {
                 `}
               >
 
-                <span className="
-                  text-lg
-                  w-6
-                  text-center
-                ">
+                <span
+                  className="
+                    text-lg
+                    w-6
+                    text-center
+                  "
+                >
                   {item.icon}
                 </span>
+
 
                 <span>
                   {item.label}
@@ -261,21 +341,26 @@ const DashboardNavbar = () => {
           </div>
 
 
-          {/* Account */}
+          {/* =================================================
+              ACCOUNT
+          ================================================== */}
 
           <div className="mt-8">
 
-            <p className="
-              px-3
-              mb-3
-              text-xs
-              font-semibold
-              uppercase
-              tracking-wider
-              text-gray-400
-            ">
+            <p
+              className="
+                px-3
+                mb-3
+                text-xs
+                font-semibold
+                uppercase
+                tracking-wider
+                text-gray-400
+              "
+            >
               Account
             </p>
+
 
             <NavLink
               to="/profile"
@@ -299,13 +384,16 @@ const DashboardNavbar = () => {
               `}
             >
 
-              <span className="
-                text-lg
-                w-6
-                text-center
-              ">
+              <span
+                className="
+                  text-lg
+                  w-6
+                  text-center
+                "
+              >
                 ⚙️
               </span>
+
 
               <span>
                 Profile & Settings
@@ -322,59 +410,72 @@ const DashboardNavbar = () => {
             USER SECTION
         ================================================== */}
 
-        <div className="
-          p-4
-          border-t
-          border-gray-100
-        ">
+        <div
+          className="
+            p-4
+            border-t
+            border-gray-100
+          "
+        >
 
-          <div className="
-            flex
-            items-center
-            gap-3
-            p-3
-            rounded-xl
-            bg-gray-50
-          ">
-
-            <div className="
-              w-10
-              h-10
-              rounded-full
-              bg-blue-100
+          <div
+            className="
               flex
               items-center
-              justify-center
-              text-lg
-              flex-shrink-0
-            ">
-              {role === 'ADMIN'
-                ? '🛡️'
-                : role === 'GROUP_ADMIN'
-                  ? '👥'
-                  : '👤'}
+              gap-3
+              p-3
+              rounded-xl
+              bg-gray-50
+            "
+          >
+
+            {/* User Avatar */}
+
+            <div
+              className="
+                w-10
+                h-10
+                rounded-full
+                bg-blue-100
+                flex
+                items-center
+                justify-center
+                text-lg
+                flex-shrink-0
+              "
+            >
+              {role === 'ADMIN' ? '🛡️' : '👤'}
             </div>
 
 
-            <div className="
-              flex-1
-              min-w-0
-            ">
+            {/* User Information */}
 
-              <p className="
-                text-sm
-                font-semibold
-                text-gray-800
-                truncate
-              ">
+            <div
+              className="
+                flex-1
+                min-w-0
+              "
+            >
+
+              <p
+                className="
+                  text-sm
+                  font-semibold
+                  text-gray-800
+                  truncate
+                "
+              >
                 {user?.name || currentRole}
               </p>
 
-              <p className="
-                text-xs
-                text-gray-500
-                truncate
-              ">
+
+              <p
+                className="
+                  text-xs
+                  text-gray-500
+                  truncate
+                "
+              >
                 {user?.email || 'Account'}
               </p>
 
@@ -382,6 +483,10 @@ const DashboardNavbar = () => {
 
           </div>
 
+
+          {/* =================================================
+              LOGOUT
+          ================================================== */}
 
           <button
             onClick={logout}
@@ -402,8 +507,11 @@ const DashboardNavbar = () => {
               transition
             "
           >
+
             <span>↪</span>
+
             Logout
+
           </button>
 
         </div>

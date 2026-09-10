@@ -1,30 +1,46 @@
-import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const RoleRoute = ({ allowedRole }) => {
   const { user } = useAuth();
 
+  // Not logged in
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  if (user.role !== allowedRole) {
-    switch (user.role) {
-      case 'TRAVELER':
-        return <Navigate to="/dashboard/traveler" replace />;
+  // Administrator route
+  if (allowedRole === "ADMIN") {
+    if (user.role === "ADMIN") {
+      return <Outlet />;
+    }
 
-      case 'GROUP_ADMIN':
-        return <Navigate to="/dashboard/group-admin" replace />;
-
-      case 'ADMIN':
-        return <Navigate to="/dashboard/admin" replace />;
-
-      default:
-        return <Navigate to="/login" replace />;
+    // Non-admin users go to the normal user dashboard
+    if (
+      user.role === "TRAVELER" ||
+      user.role === "GROUP_ADMIN"
+    ) {
+      return <Navigate to="/dashboard/traveler" replace />;
     }
   }
 
-  return <Outlet />;
+  // Normal user route
+  if (allowedRole === "TRAVELER") {
+    if (
+      user.role === "TRAVELER" ||
+      user.role === "GROUP_ADMIN"
+    ) {
+      return <Outlet />;
+    }
+
+    // Admin users go to admin dashboard
+    if (user.role === "ADMIN") {
+      return <Navigate to="/dashboard/admin" replace />;
+    }
+  }
+
+  // Unknown role
+  return <Navigate to="/login" replace />;
 };
 
 export default RoleRoute;

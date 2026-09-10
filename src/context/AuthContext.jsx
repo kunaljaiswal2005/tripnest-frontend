@@ -19,21 +19,18 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const redirectBasedOnRole = (role) => {
   switch (role) {
-    case 'TRAVELER':
-      navigate('/dashboard/traveler');
-      break;
+  case 'TRAVELER':
+  case 'GROUP_ADMIN':
+    navigate('/dashboard/traveler');
+    break;
 
-    case 'GROUP_ADMIN':
-      navigate('/dashboard/group-admin');
-      break;
+  case 'ADMIN':
+    navigate('/dashboard/admin');
+    break;
 
-    case 'ADMIN':
-      navigate('/dashboard/admin');
-      break;
-
-    default:
-      navigate('/dashboard');
-  }
+  default:
+    navigate('/dashboard');
+}
 };
 
   // LocalStorage change hone pe user update karo
