@@ -20,22 +20,19 @@ const OAuth2Success = () => {
 
       // Thoda wait karo phir redirect karo
       setTimeout(() => {
-  switch (role) {
-    case 'TRAVELER':
-      navigate('/dashboard/traveler', { replace: true });
-      break;
+  switch (user.role) {
+  case "TRAVELER":
+  case "GROUP_ADMIN":
+    navigate("/dashboard/traveler", { replace: true });
+    break;
 
-    case 'GROUP_ADMIN':
-      navigate('/dashboard/group-admin', { replace: true });
-      break;
+  case "ADMIN":
+    navigate("/dashboard/admin", { replace: true });
+    break;
 
-    case 'ADMIN':
-      navigate('/dashboard/admin', { replace: true });
-      break;
-
-    default:
-      navigate('/login', { replace: true });
-  }
+  default:
+    navigate("/login", { replace: true });
+}
 }, 500);
     } else {
       setStatus('Login failed! Redirecting...');

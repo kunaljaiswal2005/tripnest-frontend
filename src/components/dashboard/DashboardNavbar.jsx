@@ -1,6 +1,15 @@
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useState } from "react";
+import { NavLink } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+
+const Icon = ({ children }) => (
+  <span
+    className="flex h-7 w-7 flex-shrink-0 items-center justify-center text-[15px]"
+    aria-hidden="true"
+  >
+    {children}
+  </span>
+);
 
 const DashboardNavbar = () => {
   const { user, logout } = useAuth();
@@ -8,514 +17,190 @@ const DashboardNavbar = () => {
 
   const role = user?.role;
 
-  // =====================================================
-  // DASHBOARD PATH
-  // =====================================================
-
   const dashboardPath =
-    role === 'ADMIN'
-      ? '/dashboard/admin'
-      : '/dashboard/traveler';
+    role === "ADMIN"
+      ? "/dashboard/admin"
+      : "/dashboard/traveler";
 
+  const navItems =
+    role === "ADMIN"
+      ? [
+          { label: "Dashboard", icon: "⌂", path: "/dashboard/admin" },
+          { label: "Users", icon: "♙", path: "/users" },
+          { label: "Trips", icon: "✈", path: "/trips" },
+          { label: "Destinations", icon: "◎", path: "/destinations" },
+          { label: "Reports", icon: "▥", path: "/reports" },
+          { label: "Settings", icon: "⚙", path: "/settings" },
+        ]
+      : [
+          { label: "Dashboard", icon: "⌂", path: "/dashboard/traveler" },
+          { label: "My Trips", icon: "✈", path: "/trips" },
+          { label: "Itinerary", icon: "▣", path: "/itinerary" },
+          { label: "Budget & Expenses", icon: "◉", path: "/budget" },
+          { label: "Discover", icon: "◎", path: "/explore" },
+          { label: "Documents", icon: "▤", path: "/documents" },
+          { label: "Groups & Collaboration", icon: "♧", path: "/groups" },
+          { label: "Notifications", icon: "♢", path: "/notifications" },
+          { label: "Analytics", icon: "▥", path: "/analytics" },
+          { label: "Settings", icon: "⚙", path: "/settings" },
+        ];
 
-  // =====================================================
-  // NAVIGATION ITEMS
-  // =====================================================
-
-  const userNavItems = [
-    {
-      label: 'Dashboard',
-      icon: '🏠',
-      path: '/dashboard/traveler',
-    },
-    {
-      label: 'My Trips',
-      icon: '✈️',
-      path: '/trips',
-    },
-    {
-      label: 'Explore',
-      icon: '🗺️',
-      path: '/explore',
-    },
-    {
-      label: 'Budget',
-      icon: '💰',
-      path: '/budget',
-    },
-    {
-      label: 'Groups',
-      icon: '👥',
-      path: '/groups',
-    },
-    {
-      label: 'Favorites',
-      icon: '❤️',
-      path: '/favorites',
-    },
-  ];
-
-
-  const adminNavItems = [
-    {
-      label: 'Dashboard',
-      icon: '🏠',
-      path: '/dashboard/admin',
-    },
-    {
-      label: 'Users',
-      icon: '👥',
-      path: '/users',
-    },
-    {
-      label: 'Trips',
-      icon: '✈️',
-      path: '/trips',
-    },
-    {
-      label: 'Destinations',
-      icon: '🌍',
-      path: '/destinations',
-    },
-    {
-      label: 'Reports',
-      icon: '📊',
-      path: '/reports',
-    },
-    {
-      label: 'Settings',
-      icon: '⚙️',
-      path: '/settings',
-    },
-  ];
-
-
-  // =====================================================
-  // SELECT NAVIGATION BASED ONLY ON ADMIN VS USER
-  // =====================================================
-
-  const currentItems =
-    role === 'ADMIN'
-      ? adminNavItems
-      : userNavItems;
-
-
-  // =====================================================
-  // DISPLAY ROLE
-  // =====================================================
-
-  const currentRole =
-    role === 'ADMIN'
-      ? 'Administrator'
-      : 'User';
-
-
-  // =====================================================
-  // CLOSE MOBILE MENU
-  // =====================================================
-
-  const closeMenu = () => {
-    setIsOpen(false);
-  };
-
+  const closeMenu = () => setIsOpen(false);
 
   return (
     <>
-      {/* =====================================================
-          MOBILE HEADER
-      ====================================================== */}
-
-      <header
-        className="
-          lg:hidden
-          fixed
-          top-0
-          left-0
-          right-0
-          z-50
-          bg-white/90
-          backdrop-blur-xl
-          border-b
-          border-gray-200
-          px-5
-          py-4
-        "
-      >
-
+      {/* MOBILE HEADER */}
+      <header className="fixed left-0 right-0 top-0 z-50 border-b border-[#dde5e5] bg-white px-4 py-3 lg:hidden">
         <div className="flex items-center justify-between">
-
           <NavLink
             to={dashboardPath}
             onClick={closeMenu}
-            className="text-xl font-bold text-slate-800"
+            className="flex items-center gap-2"
           >
-            ✈️ <span className="text-blue-600">Trip</span>Nest
+            <span className="text-xl text-[#1f6f8b]">✈</span>
+
+            <span className="text-xl font-extrabold text-[#17324d]">
+              <span className="text-[#1f6f8b]">Trip</span>Nest
+            </span>
           </NavLink>
 
-
           <button
+            type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className="text-2xl text-slate-700"
-            aria-label="Toggle navigation menu"
+            className="rounded-lg bg-[#dff3f7] px-3 py-2 text-[#174a5b]"
+            aria-label="Toggle navigation"
           >
-            {isOpen ? '✕' : '☰'}
+            {isOpen ? "✕" : "☰"}
           </button>
-
         </div>
-
       </header>
 
-
-      {/* =====================================================
-          MOBILE OVERLAY
-      ====================================================== */}
-
+      {/* MOBILE OVERLAY */}
       {isOpen && (
         <div
-          className="
-            lg:hidden
-            fixed
-            inset-0
-            z-40
-            bg-black/30
-          "
+          className="fixed inset-0 z-40 bg-[#17324d]/30 lg:hidden"
           onClick={closeMenu}
         />
       )}
 
-
-      {/* =====================================================
-          SIDEBAR
-      ====================================================== */}
-
+      {/* SIDEBAR */}
       <aside
         className={`
           fixed
-          top-0
           left-0
-          bottom-0
+          top-0
           z-50
-          w-72
-          bg-white
-          border-r
-          border-gray-200
           flex
+          h-screen
+          w-[235px]
           flex-col
+          border-r
+          border-[#dde5e5]
+          bg-[#fffefa]
           transition-transform
           duration-300
           lg:translate-x-0
-          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
-
-        {/* =================================================
-            LOGO
-        ================================================== */}
-
-        <div
-          className="
-            px-7
-            py-7
-            border-b
-            border-gray-100
-          "
-        >
-
+        {/* LOGO */}
+        <div className="border-b border-[#edf1ef] px-5 py-5">
           <NavLink
             to={dashboardPath}
             onClick={closeMenu}
-            className="text-2xl font-bold text-slate-800"
+            className="flex items-center gap-2"
           >
-            ✈️ <span className="text-blue-600">Trip</span>Nest
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#1f6f8b] text-lg text-white">
+              ✈
+            </div>
+
+            <div>
+              <div className="text-xl font-extrabold tracking-tight text-[#17324d]">
+                <span className="text-[#1f6f8b]">Trip</span>Nest
+              </div>
+
+              <p className="text-[8px] font-medium text-[#7b8b92]">
+                Plan • Explore • Create Memories
+              </p>
+            </div>
           </NavLink>
-
-
-          <p className="text-xs text-gray-500 mt-2">
-            Your journey, beautifully planned.
-          </p>
-
-
-          {/* =================================================
-              ACCOUNT TYPE BADGE
-          ================================================== */}
-
-          <div
-            className="
-              inline-flex
-              items-center
-              gap-2
-              mt-4
-              px-3
-              py-1.5
-              rounded-full
-              bg-blue-50
-              text-blue-600
-              text-xs
-              font-semibold
-            "
-          >
-            <span>●</span>
-            {currentRole}
-          </div>
-
         </div>
 
-
-        {/* =================================================
-            NAVIGATION
-        ================================================== */}
-
-        <nav
-          className="
-            flex-1
-            px-4
-            py-6
-            overflow-y-auto
-          "
-        >
-
-          <p
-            className="
-              px-3
-              mb-3
-              text-xs
-              font-semibold
-              uppercase
-              tracking-wider
-              text-gray-400
-            "
-          >
-            {role === 'ADMIN'
-              ? 'Administration'
-              : 'Travel'}
+        {/* NAVIGATION */}
+        <nav className="flex-1 overflow-y-auto px-3 py-5">
+          <p className="mb-3 px-3 text-[9px] font-bold uppercase tracking-[0.15em] text-[#8a999f]">
+            {role === "ADMIN" ? "Administration" : "Travel"}
           </p>
 
-
           <div className="space-y-1">
-
-            {currentItems.map((item) => (
-
+            {navItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
                 onClick={closeMenu}
-                className={({ isActive }) => `
-                  flex
-                  items-center
-                  gap-3
-                  px-4
-                  py-3
-                  rounded-xl
-                  text-sm
-                  font-medium
-                  transition-all
-                  duration-200
-
-                  ${
-                    isActive
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                      : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600'
-                  }
-                `}
+                className={({ isActive }) =>
+                  `
+                    flex
+                    items-center
+                    gap-2
+                    rounded-lg
+                    px-2.5
+                    py-2
+                    text-[10px]
+                    font-semibold
+                    transition-all
+                    duration-200
+                    ${
+                      isActive
+                        ? "bg-[#1f6f8b] text-white shadow-sm"
+                        : "text-[#526b76] hover:bg-[#dff3f7] hover:text-[#174a5b]"
+                    }
+                  `
+                }
               >
+                <Icon>{item.icon}</Icon>
 
-                <span
-                  className="
-                    text-lg
-                    w-6
-                    text-center
-                  "
-                >
-                  {item.icon}
-                </span>
-
-
-                <span>
+                <span className="truncate">
                   {item.label}
                 </span>
 
+                {item.label === "Notifications" && (
+                  <span className="ml-auto flex h-4 w-4 items-center justify-center rounded-full bg-[#d96c62] text-[8px] font-bold text-white">
+                    1
+                  </span>
+                )}
               </NavLink>
-
             ))}
-
           </div>
-
-
-          {/* =================================================
-              ACCOUNT
-          ================================================== */}
-
-          <div className="mt-8">
-
-            <p
-              className="
-                px-3
-                mb-3
-                text-xs
-                font-semibold
-                uppercase
-                tracking-wider
-                text-gray-400
-              "
-            >
-              Account
-            </p>
-
-
-            <NavLink
-              to="/profile"
-              onClick={closeMenu}
-              className={({ isActive }) => `
-                flex
-                items-center
-                gap-3
-                px-4
-                py-3
-                rounded-xl
-                text-sm
-                font-medium
-                transition-all
-
-                ${
-                  isActive
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600'
-                }
-              `}
-            >
-
-              <span
-                className="
-                  text-lg
-                  w-6
-                  text-center
-                "
-              >
-                ⚙️
-              </span>
-
-
-              <span>
-                Profile & Settings
-              </span>
-
-            </NavLink>
-
-          </div>
-
         </nav>
 
-
-        {/* =================================================
-            USER SECTION
-        ================================================== */}
-
-        <div
-          className="
-            p-4
-            border-t
-            border-gray-100
-          "
-        >
-
-          <div
-            className="
-              flex
-              items-center
-              gap-3
-              p-3
-              rounded-xl
-              bg-gray-50
-            "
-          >
-
-            {/* User Avatar */}
-
-            <div
-              className="
-                w-10
-                h-10
-                rounded-full
-                bg-blue-100
-                flex
-                items-center
-                justify-center
-                text-lg
-                flex-shrink-0
-              "
-            >
-              {role === 'ADMIN' ? '🛡️' : '👤'}
+        {/* USER */}
+        <div className="border-t border-[#edf1ef] p-3">
+          <div className="mb-2 flex items-center gap-2 rounded-xl bg-[#f5ebdd] p-2.5">
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#8ed1e8] text-xs font-bold text-[#174a5b]">
+              {(user?.name || "U").charAt(0).toUpperCase()}
             </div>
 
-
-            {/* User Information */}
-
-            <div
-              className="
-                flex-1
-                min-w-0
-              "
-            >
-
-              <p
-                className="
-                  text-sm
-                  font-semibold
-                  text-gray-800
-                  truncate
-                "
-              >
-                {user?.name || currentRole}
+            <div className="min-w-0">
+              <p className="truncate text-[10px] font-bold text-[#17324d]">
+                {user?.name || "Traveler"}
               </p>
 
-
-              <p
-                className="
-                  text-xs
-                  text-gray-500
-                  truncate
-                "
-              >
-                {user?.email || 'Account'}
+              <p className="truncate text-[8px] text-[#71828a]">
+                {user?.email || "Account"}
               </p>
-
             </div>
-
           </div>
 
-
-          {/* =================================================
-              LOGOUT
-          ================================================== */}
-
           <button
+            type="button"
             onClick={logout}
-            className="
-              w-full
-              mt-3
-              flex
-              items-center
-              justify-center
-              gap-2
-              px-4
-              py-2.5
-              rounded-xl
-              text-sm
-              font-medium
-              text-red-600
-              hover:bg-red-50
-              transition
-            "
+            className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-[10px] font-semibold text-[#667784] transition hover:bg-[#f9e9e7] hover:text-[#d96c62]"
           >
-
             <span>↪</span>
-
             Logout
-
           </button>
-
         </div>
-
       </aside>
     </>
   );

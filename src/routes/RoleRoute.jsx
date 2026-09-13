@@ -4,39 +4,32 @@ import { useAuth } from "../context/AuthContext";
 const RoleRoute = ({ allowedRole }) => {
   const { user } = useAuth();
 
-  // Not logged in
+  // User is not logged in
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // Administrator route
-  if (allowedRole === "ADMIN") {
-    if (user.role === "ADMIN") {
-      return <Outlet />;
-    }
+  // Convert allowedRole into an array
+  const allowedRoles = Array.isArray(allowedRole)
+    ? allowedRole
+    : [allowedRole];
 
-    // Non-admin users go to the normal user dashboard
-    if (
-      user.role === "TRAVELER" ||
-      user.role === "GROUP_ADMIN"
-    ) {
-      return <Navigate to="/dashboard/traveler" replace />;
-    }
+  // User has permission
+  if (allowedRoles.includes(user.role)) {
+    return <Outlet />;
   }
 
-  // Normal user route
-  if (allowedRole === "TRAVELER") {
-    if (
-      user.role === "TRAVELER" ||
-      user.role === "GROUP_ADMIN"
-    ) {
-      return <Outlet />;
-    }
+  // Logged-in user does not have permission
+  // Redirect them to their correct dashboard
+  if (user.role === "ADMIN") {
+    return <Navigate to="/dashboard/admin" replace />;
+  }
 
-    // Admin users go to admin dashboard
-    if (user.role === "ADMIN") {
-      return <Navigate to="/dashboard/admin" replace />;
-    }
+  if (
+    user.role === "TRAVELER" ||
+    user.role === "GROUP_ADMIN"
+  ) {
+    return <Navigate to="/dashboard/traveler" replace />;
   }
 
   // Unknown role
