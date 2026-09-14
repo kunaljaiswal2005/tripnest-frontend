@@ -1,6 +1,17 @@
 import { Search, Bell, ChevronDown } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 export default function DashboardHeader() {
+  const { user } = useAuth();
+
+  const travelerName = user?.name || "Traveler";
+
+  const initials = travelerName
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
   return (
     <header className="h-20 bg-[#08243A] border-b border-cyan-900/30 flex items-center justify-between px-8">
       {/* Search */}
@@ -28,14 +39,14 @@ export default function DashboardHeader() {
         </button>
 
         <div className="flex items-center gap-3 cursor-pointer">
-          <img
-            src="https://i.pravatar.cc/100?img=32"
-            alt="Profile"
-            className="w-11 h-11 rounded-full object-cover border-2 border-cyan-400"
-          />
+          <div className="w-11 h-11 rounded-full bg-[#0C314D] border-2 border-cyan-400 flex items-center justify-center text-cyan-400 font-semibold">
+  {initials}
+</div>
 
           <div className="text-left">
-            <p className="text-white text-sm font-semibold">Priya Sharma</p>
+            <p className="text-white text-sm font-semibold">
+  {travelerName}
+</p>
             <p className="text-slate-400 text-xs">Traveler</p>
           </div>
 

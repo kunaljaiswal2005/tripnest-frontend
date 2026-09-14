@@ -12,6 +12,11 @@ import AdminDashboard from "./pages/dashboards/AdminDashboard";
 
 import RoleRoute from "./routes/RoleRoute";
 
+import TripDashboard from "./pages/trips/TripDashboard";
+
+import CreateTrip from "./pages/trips/CreateTrip";
+
+import TripDetails from "./pages/trips/TripDetails";
 
 /*
  * ============================================================
@@ -135,17 +140,30 @@ const AppRoutes = () => {
           ====================================================== */}
 
       <Route
-        element={
-          <RoleRoute
-            allowedRole={["TRAVELER", "GROUP_ADMIN"]}
-          />
-        }
-      >
-        <Route
-          path="/dashboard/traveler"
-          element={<TravelerDashboard />}
-        />
-      </Route>
+  element={
+    <RoleRoute
+      allowedRole={["TRAVELER", "GROUP_ADMIN"]}
+    />
+  }
+>
+  <Route
+    path="/dashboard/traveler"
+    element={<TravelerDashboard />}
+  />
+
+  <Route
+    path="/dashboard/trips"
+    element={<TripDashboard />}
+  />
+  <Route
+  path="/dashboard/trips/create"
+  element={<CreateTrip />}
+/>
+<Route
+  path="/dashboard/trips/:id"
+  element={<TripDetails />}
+/>
+</Route>
 
 
       {/* ======================================================

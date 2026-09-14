@@ -5,6 +5,7 @@ import {
   Upload,
 } from "lucide-react";
 
+import { useNavigate } from "react-router-dom";
 import QuickActionCard from "./QuickActionCard";
 
 const actions = [
@@ -13,6 +14,7 @@ const actions = [
     subtitle: "Create a new journey",
     icon: Plus,
     color: "#FF7568",
+    path: "/dashboard/trips/create",
   },
   {
     title: "Create Itinerary",
@@ -35,8 +37,20 @@ const actions = [
 ];
 
 export default function QuickActions() {
+  const navigate = useNavigate();
+
+  const handleActionClick = (action) => {
+    if (action.path) {
+      navigate(action.path);
+      return;
+    }
+
+    console.log(action.title);
+  };
+
   return (
     <section className="space-y-4">
+
       <div>
         <h2 className="text-xl font-bold text-white">
           Quick Actions
@@ -49,14 +63,17 @@ export default function QuickActions() {
 
       {/* 4 Cards in One Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+
         {actions.map((action) => (
           <QuickActionCard
             key={action.title}
             {...action}
-            onClick={() => console.log(action.title)}
+            onClick={() => handleActionClick(action)}
           />
         ))}
+
       </div>
+
     </section>
   );
 }

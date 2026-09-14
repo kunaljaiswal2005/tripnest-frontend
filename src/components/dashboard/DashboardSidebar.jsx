@@ -1,3 +1,4 @@
+import { useAuth } from "../../context/AuthContext";
 import {
   LayoutDashboard,
   Briefcase,
@@ -27,7 +28,8 @@ const menuItems = [
 ];
 
 export default function DashboardSidebar() {
-  return (
+  const { logout } = useAuth();
+    return (
     <aside className="w-64 h-screen bg-[#061B2E] border-r border-cyan-900/40 flex flex-col">
       {/* Logo */}
       <div className="px-6 py-6 border-b border-cyan-900/30">
@@ -71,10 +73,13 @@ export default function DashboardSidebar() {
 
       {/* Logout */}
       <div className="p-4 border-t border-cyan-900/30">
-        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-red-500/10 hover:text-red-300 transition">
-          <LogOut size={20} />
-          Logout
-        </button>
+        <button
+  onClick={logout}
+  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-red-500/10 hover:text-red-300 transition"
+>
+  <LogOut size={20} />
+  Logout
+</button>
       </div>
     </aside>
   );
