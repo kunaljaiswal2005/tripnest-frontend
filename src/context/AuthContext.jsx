@@ -17,6 +17,21 @@ export const AuthProvider = ({ children }) => {
 
   const [user, setUser] = useState(getStoredUser);
   const navigate = useNavigate();
+  const redirectBasedOnRole = (role) => {
+  switch (role) {
+  case 'TRAVELER':
+  case 'GROUP_ADMIN':
+    navigate('/dashboard/traveler');
+    break;
+
+  case 'ADMIN':
+    navigate('/dashboard/admin');
+    break;
+
+  default:
+    navigate('/dashboard');
+}
+};
 
   // LocalStorage change hone pe user update karo
   useEffect(() => {
@@ -33,7 +48,9 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data));
       setUser(res.data);
-      navigate('/dashboard');
+
+      redirectBasedOnRole(res.data.role);
+
       return { success: true };
     } catch (err) {
       return { success: false, message: 'Invalid email or password!' };
@@ -48,7 +65,9 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data));
       setUser(res.data);
-      navigate('/dashboard');
+
+      redirectBasedOnRole(res.data.role);
+
       return { success: true };
     } catch (err) {
       return { success: false, message: 'Registration failed!' };
