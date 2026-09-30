@@ -1,14 +1,21 @@
 import { useAuth } from "../context/AuthContext";
-import { NavLink, Link } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { notificationAPI } from "../utils/api";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const [isScroll, setIsScroll] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Detect scroll
+  // Notification states
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotif, setShowNotif] = useState(false);
+
+  // ================= SCROLL EFFECT =================
   useEffect(() => {
     const handleScroll = () => {
       setIsScroll(window.scrollY > 20);
@@ -21,7 +28,7 @@ const Navbar = () => {
     };
   }, []);
 
-  // Prevent body scroll when mobile menu is open
+  // ================= MOBILE MENU EFFECT =================
   useEffect(() => {
     document.body.style.overflow = isMenuOpen ? "hidden" : "";
 
@@ -30,38 +37,104 @@ const Navbar = () => {
     };
   }, [isMenuOpen]);
 
+  // ================= NOTIFICATION EFFECT =================
+  useEffect(() => {
+    if (user) {
+      fetchUnreadCount();
+
+      const interval = setInterval(fetchUnreadCount, 30000);
+
+      return () => clearInterval(interval);
+    }
+  }, [user]);
+
+  // ================= FETCH UNREAD COUNT =================
+  const fetchUnreadCount = async () => {
+    try {
+      const res = await notificationAPI.getCount();
+      setUnreadCount(res.data.unreadCount);
+    } catch {}
+  };
+
+  // ================= FETCH NOTIFICATIONS =================
+  const fetchNotifications = async () => {
+    try {
+      const res = await notificationAPI.getAll();
+      setNotifications(res.data);
+    } catch {}
+  };
+
+  // ================= BELL CLICK =================
+  const handleBellClick = () => {
+    setShowNotif(!showNotif);
+
+    if (!showNotif) {
+      fetchNotifications();
+    }
+  };
+
+  // ================= MARK ALL READ =================
+  const handleMarkAllRead = async () => {
+    try {
+      await notificationAPI.markAllRead();
+
+      setUnreadCount(0);
+
+      setNotifications((prev) =>
+        prev.map((n) => ({
+          ...n,
+          isRead: true,
+        }))
+      );
+    } catch {}
+  };
+
+  // ================= MARK SINGLE NOTIFICATION READ =================
+  const handleNotifClick = async (notif) => {
+    try {
+      // Only decrease count if notification was unread
+      if (!notif.isRead) {
+        await notificationAPI.markRead(notif.id);
+
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+
+        setNotifications((prev) =>
+          prev.map((n) =>
+            n.id === notif.id
+              ? { ...n, isRead: true }
+              : n
+          )
+        );
+      }
+
+      if (notif.redirectUrl) {
+        navigate(notif.redirectUrl);
+      }
+
+      setShowNotif(false);
+    } catch {}
+  };
+
+  // ================= CLOSE MOBILE MENU =================
   const closeMenu = () => {
     setIsMenuOpen(false);
   };
 
+  // ================= LOGOUT =================
   const handleLogout = () => {
     closeMenu();
     logout();
   };
 
+  // ================= NAV ITEMS =================
   const navItems = [
-    {
-      name: "Dashboard",
-      path: "/dashboard",
-      icon: "⌂",
-    },
-    {
-      name: "Trips",
-      path: "/trips",
-      icon: "✈️",
-    },
-    {
-      name: "Bookings",
-      path: "/bookings",
-      icon: "🎫",
-    },
-    {
-      name: "Profile",
-      path: "/profile",
-      icon: "👤",
-    },
-  ];
+    { name: "Dashboard",  path: "/dashboard",     icon: "⌂"  },
+    { name: "Trips",      path: "/trips",          icon: "✈️" },
+    { name: "Groups",     path: "/groups",         icon: "👥" },
+    { name: "Profile",    path: "/profile",        icon: "👤" },
+];
 
+  // ================= DESKTOP LINK CLASS =================
   const desktopLinkClass = ({ isActive }) =>
     `relative flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
       isActive
@@ -85,6 +158,7 @@ const Navbar = () => {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="h-[76px] flex items-center justify-between">
+
             {/* ================= LOGO ================= */}
             <Link
               to="/dashboard"
@@ -118,7 +192,6 @@ const Navbar = () => {
                     className={desktopLinkClass}
                   >
                     <span className="text-sm">{item.icon}</span>
-
                     <span>{item.name}</span>
                   </NavLink>
                 ))}
@@ -158,7 +231,133 @@ const Navbar = () => {
                     </span>
                   )}
 
-                  {/* Logout */}
+                  {/* ================= NOTIFICATION BELL ================= */}
+                  <div className="relative">
+                    <button
+                      onClick={handleBellClick}
+                      className="relative w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 hover:bg-slate-50 transition"
+                      aria-label="Notifications"
+                    >
+                      <span className="text-lg">🔔</span>
+
+                      {unreadCount > 0 && (
+                        <span
+                          className="absolute -top-1 -right-1
+                                     w-5 h-5 bg-red-500 text-white
+                                     text-[10px] font-bold rounded-full
+                                     flex items-center justify-center"
+                        >
+                          {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
+                      )}
+                    </button>
+
+                    {/* ================= NOTIFICATION DROPDOWN ================= */}
+                    {showNotif && (
+                      <div
+                        className="absolute right-0 top-12 w-80
+                                   bg-white border border-slate-200
+                                   rounded-2xl shadow-2xl z-50
+                                   overflow-hidden"
+                      >
+                        {/* Header */}
+                        <div
+                          className="flex justify-between items-center
+                                     px-4 py-3 border-b border-slate-100"
+                        >
+                          <span className="font-semibold text-slate-800 text-sm">
+                            Notifications
+                          </span>
+
+                          {unreadCount > 0 && (
+                            <button
+                              onClick={handleMarkAllRead}
+                              className="text-xs text-blue-600 hover:underline"
+                            >
+                              Mark all read
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Notification List */}
+                        <div className="max-h-80 overflow-y-auto">
+                          {notifications.length === 0 ? (
+                            <div className="py-8 text-center text-slate-400 text-sm">
+                              No notifications
+                            </div>
+                          ) : (
+                            notifications.slice(0, 10).map((notif) => (
+                              <div
+                                key={notif.id}
+                                onClick={() => handleNotifClick(notif)}
+                                className={`px-4 py-3 cursor-pointer
+                                            border-b border-slate-50
+                                            hover:bg-slate-50 transition
+                                            ${
+                                              !notif.isRead
+                                                ? "bg-blue-50/50"
+                                                : ""
+                                            }`}
+                              >
+                                <div className="flex items-start gap-3">
+                                  <span className="text-lg mt-0.5">
+                                    {getNotifEmoji(
+                                      notif.notificationType
+                                    )}
+                                  </span>
+
+                                  <div className="flex-1 min-w-0">
+                                    <p
+                                      className={`text-xs leading-relaxed
+                                        ${
+                                          !notif.isRead
+                                            ? "text-slate-800 font-medium"
+                                            : "text-slate-600"
+                                        }`}
+                                    >
+                                      {notif.message}
+                                    </p>
+
+                                    <p className="text-[10px] text-slate-400 mt-1">
+                                      {formatTime(notif.createdAt)}
+                                    </p>
+                                  </div>
+
+                                  {!notif.isRead && (
+                                    <span
+                                      className="w-2 h-2 bg-blue-500
+                                                 rounded-full mt-1 shrink-0"
+                                    />
+                                  )}
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+
+                        {/* Footer */}
+                        {notifications.length > 0 && (
+                          <div
+                            className="px-4 py-3 border-t
+                                       border-slate-100 text-center"
+                          >
+                            <button
+                              onClick={() => {
+                                navigate("/notifications");
+                                setShowNotif(false);
+                              }}
+                              className="text-xs text-blue-600
+                                         hover:underline font-medium"
+                            >
+                              View all notifications →
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ================= LOGOUT ================= */}
                   <button
                     onClick={handleLogout}
                     className="group flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition-all"
@@ -280,6 +479,7 @@ const Navbar = () => {
         </div>
 
         <div className="p-5 overflow-y-auto h-[calc(100vh-76px)]">
+
           {/* ================= MOBILE USER CARD ================= */}
           {user && (
             <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 mb-5">
@@ -324,24 +524,30 @@ const Navbar = () => {
                 onClick={closeMenu}
                 className={({ isActive }) =>
                   `
-                  flex items-center gap-3
-                  px-4 py-3.5
-                  rounded-xl
-                  text-sm font-medium
-                  transition-all
-                  ${
-                    isActive
-                      ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
-                      : "text-slate-700 hover:bg-slate-50 hover:text-blue-600"
-                  }
+                    flex items-center gap-3
+                    px-4 py-3.5
+                    rounded-xl
+                    text-sm font-medium
+                    transition-all
+                    ${
+                      isActive
+                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
+                        : "text-slate-700 hover:bg-slate-50 hover:text-blue-600"
+                    }
                   `
                 }
               >
-                <span className="text-lg w-6 text-center">{item.icon}</span>
+                <span className="text-lg w-6 text-center">
+                  {item.icon}
+                </span>
 
-                <span className="flex-1">{item.name}</span>
+                <span className="flex-1">
+                  {item.name}
+                </span>
 
-                <span className="text-sm opacity-50">→</span>
+                <span className="text-sm opacity-50">
+                  →
+                </span>
               </NavLink>
             ))}
           </div>
@@ -382,6 +588,53 @@ const Navbar = () => {
       </aside>
     </>
   );
+};
+
+// ================= NOTIFICATION EMOJI =================
+const getNotifEmoji = (type) => {
+  switch (type) {
+    case "TRIP_REMINDER":
+      return "✈️";
+
+    case "ACTIVITY_REMINDER":
+      return "🗓️";
+
+    case "BUDGET_ALERT":
+      return "💰";
+
+    case "GROUP_INVITATION":
+      return "👥";
+
+    case "TRAVEL_UPDATE":
+      return "🔄";
+
+    default:
+      return "🔔";
+  }
+};
+
+// ================= FORMAT NOTIFICATION TIME =================
+const formatTime = (dateStr) => {
+  if (!dateStr) return "";
+
+  const date = new Date(dateStr);
+  const now = new Date();
+
+  const diff = Math.floor((now - date) / 1000);
+
+  if (diff < 60) {
+    return "Just now";
+  }
+
+  if (diff < 3600) {
+    return Math.floor(diff / 60) + "m ago";
+  }
+
+  if (diff < 86400) {
+    return Math.floor(diff / 3600) + "h ago";
+  }
+
+  return Math.floor(diff / 86400) + "d ago";
 };
 
 export default Navbar;
