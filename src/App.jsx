@@ -14,6 +14,7 @@ import Budget         from './pages/Budget';
 import Expenses       from './pages/Expenses';
 import Groups         from './pages/Groups';
 import Notifications  from './pages/Notifications';
+import Documents from './pages/Documents';
 
 const PrivateRoute = ({ children }) => {
   const { user } = useAuth();
@@ -49,6 +50,8 @@ const AppRoutes = () => (
       <PrivateRoute><Groups /></PrivateRoute>} />
     <Route path="/notifications" element={
       <PrivateRoute><Notifications /></PrivateRoute>} />
+    <Route path="/trips/:id/documents" element={
+    <PrivateRoute><Documents /></PrivateRoute>} />  
   </Routes>
 );
 

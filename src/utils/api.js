@@ -119,4 +119,24 @@ export const notificationAPI = {
     api.delete(`/api/notifications/${id}`),
 };
 
+
+// ── Document APIs ──
+export const documentAPI = {
+    upload: (tripId, formData) =>
+        api.post(`/api/trips/${tripId}/documents`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        }),
+    getAll:    (tripId) =>
+        api.get(`/api/trips/${tripId}/documents`),
+    getPhotos: (tripId) =>
+        api.get(`/api/trips/${tripId}/documents/photos`),
+    getByType: (tripId, type) =>
+        api.get(`/api/trips/${tripId}/documents/type?type=${type}`),
+    getById:   (id) =>
+        api.get(`/api/documents/${id}`),
+    delete:    (id) =>
+        api.delete(`/api/documents/${id}`),
+};
+
+
 export default api;
