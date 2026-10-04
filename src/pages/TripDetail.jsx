@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { tripAPI, itineraryAPI, activityAPI } from "../utils/api";
+import MapboxSearch from "../components/MapboxSearch";
+import DestinationExplorer from "../components/DestinationExplorer";
 
 const activityTypes = [
     "SIGHTSEEING",
@@ -97,6 +99,11 @@ const TripDetail = () => {
     const handleAddActivity = async (e) => {
         e.preventDefault();
 
+        if (!activeDay) {
+            alert("Please select a day first.");
+            return;
+        }
+
         try {
             await activityAPI.create(activeDay, {
                 ...activityForm,
@@ -136,19 +143,36 @@ const TripDetail = () => {
         }
     };
 
+    const handleAddPlaceToItinerary = (place) => {
+        setActivityForm((prev) => ({
+            ...prev,
+            title: place.name || "",
+            location:
+                place.address ||
+                place.name ||
+                "",
+            activityType: "SIGHTSEEING",
+        }));
+
+        setShowAddActivity(true);
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50">
                 <Navbar />
 
                 <div className="flex justify-center items-center h-64">
-                    <p className="text-gray-400">Loading trip...</p>
+                    <p className="text-gray-400">
+                        Loading trip...
+                    </p>
                 </div>
             </div>
         );
     }
 
     const currentActivities = activities[activeDay] || [];
+
     const activeItinerary = itineraries.find(
         (i) => i.id === activeDay
     );
@@ -235,6 +259,7 @@ const TripDetail = () => {
                         </div>
                     </div>
 
+                    {/* Description */}
                     {trip?.description && (
                         <p
                             className="text-sm text-gray-500 mt-4 border-t
@@ -269,7 +294,7 @@ const TripDetail = () => {
                         </button>
                     </div>
 
-                    {/* Documents & Photos Button */}
+                    {/* Documents & Photos */}
                     <div className="flex gap-3 mt-4 pt-4 border-t border-gray-50">
                         <button
                             onClick={() =>
@@ -331,6 +356,7 @@ const TripDetail = () => {
                     {/* Activities Panel */}
                     <div className="flex-1">
 
+                        {/* Activities Header */}
                         <div className="flex justify-between items-center mb-4">
                             <div>
                                 <h2 className="text-sm font-semibold text-gray-700">
@@ -364,6 +390,7 @@ const TripDetail = () => {
                                     New Activity
                                 </h3>
 
+                                {/* Activity Title */}
                                 <input
                                     type="text"
                                     placeholder="Activity title *"
@@ -380,6 +407,7 @@ const TripDetail = () => {
                                     required
                                 />
 
+                                {/* Activity Type */}
                                 <select
                                     value={activityForm.activityType}
                                     onChange={(e) =>
@@ -399,6 +427,7 @@ const TripDetail = () => {
                                     ))}
                                 </select>
 
+                                {/* Time */}
                                 <div className="grid grid-cols-2 gap-3">
                                     <input
                                         type="time"
@@ -412,7 +441,6 @@ const TripDetail = () => {
                                         className="border border-gray-200 rounded-lg
                                                    px-3 py-2 text-sm focus:outline-none
                                                    focus:ring-2 focus:ring-blue-500"
-                                        placeholder="Start time"
                                     />
 
                                     <input
@@ -427,25 +455,38 @@ const TripDetail = () => {
                                         className="border border-gray-200 rounded-lg
                                                    px-3 py-2 text-sm focus:outline-none
                                                    focus:ring-2 focus:ring-blue-500"
-                                        placeholder="End time"
                                     />
                                 </div>
 
-                                <input
-                                    type="text"
-                                    placeholder="Location"
-                                    value={activityForm.location}
-                                    onChange={(e) =>
-                                        setActivityForm({
-                                            ...activityForm,
-                                            location: e.target.value,
-                                        })
-                                    }
-                                    className="w-full border border-gray-200 rounded-lg
-                                               px-3 py-2 text-sm focus:outline-none
-                                               focus:ring-2 focus:ring-blue-500"
-                                />
+                                {/* Mapbox Location */}
+                                <div>
+                                    <label className="block text-xs text-slate-500 mb-1">
+                                        Location
+                                    </label>
 
+                                    <MapboxSearch
+                                        placeholder="Search location..."
+                                        onPlaceSelect={(place) => {
+                                            setActivityForm((prev) => ({
+                                                ...prev,
+                                                location:
+                                                    `${place.name || ""}${
+                                                        place.address
+                                                            ? `, ${place.address}`
+                                                            : ""
+                                                    }`.replace(/^,\s*/, ""),
+                                            }));
+                                        }}
+                                    />
+
+                                    {activityForm.location && (
+                                        <p className="text-[10px] text-slate-400 mt-1">
+                                            📍 {activityForm.location}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Estimated Cost */}
                                 <input
                                     type="number"
                                     placeholder="Estimated cost (₹)"
@@ -461,6 +502,7 @@ const TripDetail = () => {
                                                focus:ring-2 focus:ring-blue-500"
                                 />
 
+                                {/* Notes */}
                                 <textarea
                                     placeholder="Notes"
                                     value={activityForm.notes}
@@ -476,6 +518,7 @@ const TripDetail = () => {
                                                focus:ring-2 focus:ring-blue-500 resize-none"
                                 />
 
+                                {/* Form Buttons */}
                                 <div className="flex gap-3">
                                     <button
                                         type="button"
@@ -591,6 +634,18 @@ const TripDetail = () => {
                                         )}
                                     </div>
                                 ))}
+                            </div>
+                        )}
+
+                        {/* Destination Explorer */}
+                        {trip?.destination && (
+                            <div className="mt-6">
+                                <DestinationExplorer
+                                    destination={trip.destination}
+                                    onAddToItinerary={
+                                        handleAddPlaceToItinerary
+                                    }
+                                />
                             </div>
                         )}
                     </div>

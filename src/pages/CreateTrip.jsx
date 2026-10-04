@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import MapboxSearch from "../components/MapboxSearch";
 import { tripAPI, itineraryAPI } from "../utils/api";
 
 const CreateTrip = () => {
@@ -35,7 +36,9 @@ const CreateTrip = () => {
     try {
       const res = await tripAPI.create({
         ...form,
-        totalBudget: form.totalBudget ? Number(form.totalBudget) : null,
+        totalBudget: form.totalBudget
+          ? Number(form.totalBudget)
+          : null,
       });
 
       const tripId = res.data.id;
@@ -46,7 +49,8 @@ const CreateTrip = () => {
       navigate(`/trips/${tripId}`);
     } catch (err) {
       setError(
-        err.response?.data?.error || "Trip create failed! Please try again.",
+        err.response?.data?.error ||
+          "Trip create failed! Please try again."
       );
     } finally {
       setLoading(false);
@@ -58,6 +62,7 @@ const CreateTrip = () => {
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-12">
+
         {/* ================= TOP HEADER ================= */}
         <div className="mb-8">
           <button
@@ -106,19 +111,23 @@ const CreateTrip = () => {
                 Something went wrong
               </p>
 
-              <p className="text-sm text-red-600 mt-0.5">{error}</p>
+              <p className="text-sm text-red-600 mt-0.5">
+                {error}
+              </p>
             </div>
           </div>
         )}
 
         {/* ================= MAIN GRID ================= */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
           {/* ================= FORM ================= */}
           <div className="lg:col-span-2">
             <form
               onSubmit={handleSubmit}
               className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden"
             >
+
               {/* Form Header */}
               <div className="px-6 sm:px-8 py-6 border-b border-slate-100">
                 <div className="flex items-center gap-3">
@@ -127,7 +136,9 @@ const CreateTrip = () => {
                   </div>
 
                   <div>
-                    <h2 className="font-bold text-slate-900">Trip Details</h2>
+                    <h2 className="font-bold text-slate-900">
+                      Trip Details
+                    </h2>
 
                     <p className="text-xs text-slate-500 mt-0.5">
                       Tell us about your upcoming journey
@@ -137,8 +148,10 @@ const CreateTrip = () => {
               </div>
 
               <div className="p-6 sm:p-8 space-y-6">
+
                 {/* ================= TITLE + DESTINATION ================= */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
                   {/* Title */}
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -163,28 +176,29 @@ const CreateTrip = () => {
                     </div>
                   </div>
 
-                  {/* Destination */}
+                  {/* Destination - Mapbox */}
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
                       Destination
                       <span className="text-blue-600 ml-1">*</span>
                     </label>
 
-                    <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-lg">
-                        📍
-                      </span>
+                    <MapboxSearch
+                      placeholder="Search destination..."
+                      onPlaceSelect={(place) => {
+                        setForm((prev) => ({
+                          ...prev,
+                          destination: place.name,
+                        }));
+                      }}
+                    />
 
-                      <input
-                        type="text"
-                        name="destination"
-                        value={form.destination}
-                        onChange={handleChange}
-                        placeholder="e.g. Goa, India"
-                        className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                        required
-                      />
-                    </div>
+                    {form.destination && (
+                      <p className="text-xs text-green-600 mt-2 flex items-center gap-1">
+                        <span>✅</span>
+                        {form.destination}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -196,6 +210,7 @@ const CreateTrip = () => {
                   </label>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
                     {/* Start Date */}
                     <div className="relative">
                       <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-lg pointer-events-none">
@@ -241,6 +256,7 @@ const CreateTrip = () => {
 
                 {/* ================= BUDGET + STATUS ================= */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
                   {/* Budget */}
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -285,11 +301,17 @@ const CreateTrip = () => {
                         onChange={handleChange}
                         className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-700 outline-none appearance-none transition-all focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                       >
-                        <option value="PLANNING">Planning</option>
+                        <option value="PLANNING">
+                          Planning
+                        </option>
 
-                        <option value="UPCOMING">Upcoming</option>
+                        <option value="UPCOMING">
+                          Upcoming
+                        </option>
 
-                        <option value="ONGOING">Ongoing</option>
+                        <option value="ONGOING">
+                          Ongoing
+                        </option>
                       </select>
 
                       <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
@@ -306,7 +328,9 @@ const CreateTrip = () => {
                       Description
                     </label>
 
-                    <span className="text-[11px] text-slate-400">Optional</span>
+                    <span className="text-[11px] text-slate-400">
+                      Optional
+                    </span>
                   </div>
 
                   <textarea
@@ -324,6 +348,7 @@ const CreateTrip = () => {
 
                 {/* ================= BUTTONS ================= */}
                 <div className="flex flex-col-reverse sm:flex-row gap-3">
+
                   <button
                     type="button"
                     onClick={() => navigate("/trips")}
@@ -355,22 +380,29 @@ const CreateTrip = () => {
             </form>
           </div>
 
-          {/* ================= TRIP PREVIEW / SIDEBAR ================= */}
+          {/* ================= SIDEBAR ================= */}
           <aside className="lg:col-span-1">
             <div className="lg:sticky lg:top-28 space-y-5">
+
               {/* Preview Card */}
               <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
+
                 <div className="relative h-40 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 overflow-hidden">
+
                   <div className="absolute -right-8 -top-10 w-40 h-40 rounded-full bg-white/10" />
+
                   <div className="absolute -left-10 -bottom-16 w-48 h-48 rounded-full bg-white/5" />
 
                   <div className="relative z-10 h-full flex flex-col justify-between p-5">
+
                     <div className="flex justify-between items-start">
                       <span className="px-2.5 py-1 rounded-full bg-white/15 border border-white/20 text-white text-[10px] font-semibold backdrop-blur-sm">
                         TRIP PREVIEW
                       </span>
 
-                      <span className="text-3xl">✈️</span>
+                      <span className="text-3xl">
+                        ✈️
+                      </span>
                     </div>
 
                     <div>
@@ -386,6 +418,7 @@ const CreateTrip = () => {
                 </div>
 
                 <div className="p-5 space-y-4">
+
                   {/* Destination */}
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
@@ -435,9 +468,9 @@ const CreateTrip = () => {
 
                       <p className="text-sm font-semibold text-slate-800">
                         {form.totalBudget
-                          ? `₹${Number(form.totalBudget).toLocaleString(
-                              "en-IN",
-                            )}`
+                          ? `₹${Number(
+                              form.totalBudget
+                            ).toLocaleString("en-IN")}`
                           : "Not set"}
                       </p>
                     </div>
@@ -445,7 +478,9 @@ const CreateTrip = () => {
 
                   {/* Status */}
                   <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-xs text-slate-500">Status</span>
+                    <span className="text-xs text-slate-500">
+                      Status
+                    </span>
 
                     <span className="px-2.5 py-1 rounded-full bg-purple-50 text-purple-600 border border-purple-100 text-[10px] font-bold">
                       {form.status}
@@ -456,14 +491,18 @@ const CreateTrip = () => {
 
               {/* Info Card */}
               <div className="rounded-3xl bg-slate-900 p-5 relative overflow-hidden">
+
                 <div className="absolute -right-8 -top-8 w-28 h-28 rounded-full bg-blue-500/10" />
 
                 <div className="relative z-10">
+
                   <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-xl mb-4">
                     💡
                   </div>
 
-                  <h3 className="font-bold text-white">What happens next?</h3>
+                  <h3 className="font-bold text-white">
+                    What happens next?
+                  </h3>
 
                   <p className="text-xs text-slate-400 mt-2 leading-relaxed">
                     After creating your trip, TripNest will automatically
@@ -471,6 +510,7 @@ const CreateTrip = () => {
                   </p>
 
                   <div className="mt-4 space-y-3">
+
                     <div className="flex gap-3 items-center">
                       <span className="w-6 h-6 rounded-full bg-blue-500/15 text-blue-400 text-[10px] font-bold flex items-center justify-center">
                         1
@@ -500,6 +540,7 @@ const CreateTrip = () => {
                         Start customizing your trip
                       </span>
                     </div>
+
                   </div>
                 </div>
               </div>

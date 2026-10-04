@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { destinationAPI } from "../utils/api";
+import MapboxSearch from '../components/MapboxSearch';
+import { getStaticMapUrl } from '../utils/mapboxAPI';
+
 
 const Destinations = () => {
   const navigate = useNavigate();
@@ -165,32 +168,15 @@ const Destinations = () => {
               </p>
 
               {/* Search */}
-              <div className="relative mt-8 max-w-2xl">
-                <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-2xl" />
-
-                <div className="relative flex items-center rounded-2xl bg-white p-1.5 shadow-2xl">
-                  <span className="flex w-12 items-center justify-center text-xl">
-                    🔍
-                  </span>
-
-                  <input
-                    type="text"
-                    placeholder="Search a destination or country..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="flex-1 bg-transparent px-2 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none"
-                  />
-
-                  {search && (
-                    <button
-                      onClick={() => setSearch("")}
-                      className="mr-2 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm text-slate-500 transition hover:bg-slate-200 hover:text-slate-900"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-              </div>
+              <MapboxSearch
+                 placeholder="Search any destination..."
+                  className="text-base py-3"
+                         onPlaceSelect={(place) => {
+                    navigate('/trips/create', {
+                   state: { destination: place.name }
+                 });
+                }}
+               />
 
               {/* Small stats */}
               <div className="mt-7 flex flex-wrap gap-6 text-xs text-white/80">
@@ -298,16 +284,29 @@ const Destinations = () => {
                     >
                       {/* Image */}
                       <div className="relative h-64 overflow-hidden">
-                        <img
-                          src={getDestinationImage(dest.name)}
-                          alt={dest.name}
-                          loading="lazy"
-                          onError={handleImageError}
-                          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                        />
+    <div className="h-full w-full">
+        <img
+            src={getStaticMapUrl(
+                28.6139,
+                77.2090,
+                10,
+                600,
+                300
+            )}
+            alt={dest.name}
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+            onError={(e) => {
+                e.currentTarget.parentElement.innerHTML = `
+                    <div class="w-full h-full bg-blue-50 flex items-center justify-center text-4xl">
+                        ${getEmoji(dest.name)}
+                    </div>
+                `;
+            }}
+        />
+    </div>
 
-                        {/* Image overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
+    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
 
                         {/* Popular badge */}
                         <div className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full border border-white/30 bg-white/15 px-3 py-1.5 text-[10px] font-black tracking-wide text-white shadow-lg backdrop-blur-md">
