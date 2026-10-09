@@ -128,10 +128,10 @@ const Navbar = () => {
 
   // ================= NAV ITEMS =================
   const navItems = [
-    { name: "Dashboard",  path: "/dashboard",     icon: "⌂"  },
-    { name: "Trips",      path: "/trips",          icon: "✈️" },
-    { name: "Groups",     path: "/groups",         icon: "👥" },
-    { name: "Profile",    path: "/profile",        icon: "👤" },
+    { name: "Dashboard",  path: "/dashboard",  icon: "⌂"  },
+    { name: "Trips",      path: "/trips",       icon: "✈️" },
+    { name: "Analytics",  path: "/analytics",   icon: "📊" },
+    { name: "Groups",     path: "/groups",      icon: "👥" },
 ];
 
   // ================= DESKTOP LINK CLASS =================

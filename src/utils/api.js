@@ -138,5 +138,15 @@ export const documentAPI = {
         api.delete(`/api/documents/${id}`),
 };
 
+// ── Analytics APIs ──
+export const analyticsAPI = {
+    getOverview:    () =>
+        api.get('/api/analytics/overview'),
+    getExpenseReport: (tripId) =>
+        api.get(`/api/analytics/trips/${tripId}/report`),
+    getAdminAnalytics: () =>
+        api.get('/api/analytics/admin'),
+};
+
 
 export default api;
