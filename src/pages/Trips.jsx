@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { tripAPI } from "../utils/api";
+import PendingInvitations from '../components/PendingInvitations';
 
 const statusColors = {
   PLANNING: "bg-violet-50 text-violet-700 border-violet-200",
@@ -196,7 +197,9 @@ const Trips = () => {
             </div>
           </section>
         )}
-
+        <section className="mb-8">
+  <PendingInvitations />
+</section>
         {/* ======================================================
             TITLE
         ====================================================== */}

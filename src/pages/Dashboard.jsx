@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
 import { tripAPI } from "../utils/api";
+import PendingInvitations from "../components/PendingInvitations";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -268,6 +269,9 @@ const Dashboard = () => {
             </div>
           </div>
         </section>
+        <section className="mb-8">
+  <PendingInvitations />
+</section>
 
         {/* ======================================================
             STATS

@@ -147,6 +147,23 @@ export const analyticsAPI = {
     getAdminAnalytics: () =>
         api.get('/api/analytics/admin'),
 };
+// ── Trip Member APIs ──
+export const tripMemberAPI = {
+    invite:      (tripId, email) =>
+        api.post(`/api/trips/${tripId}/invite`,
+            { email }),
+    getMembers:  (tripId) =>
+        api.get(`/api/trips/${tripId}/members`),
+    accept:      (tripId) =>
+        api.patch(`/api/trips/${tripId}/accept`),
+    decline:     (tripId) =>
+        api.patch(`/api/trips/${tripId}/decline`),
+    remove:      (tripId, memberId) =>
+        api.delete(
+            `/api/trips/${tripId}/members/${memberId}`),
+    getPending:  () =>
+        api.get('/api/trips/invitations/pending'),
+};
 
 
 export default api;
