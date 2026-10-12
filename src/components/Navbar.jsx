@@ -127,11 +127,15 @@ const Navbar = () => {
   };
 
   // ================= NAV ITEMS =================
-  const navItems = [
+  const isAdmin = user?.role === 'ADMIN';
+
+// navItems mein conditionally add karo
+const navItems = [
     { name: "Dashboard",  path: "/dashboard",  icon: "⌂"  },
     { name: "Trips",      path: "/trips",       icon: "✈️" },
     { name: "Analytics",  path: "/analytics",   icon: "📊" },
     { name: "Groups",     path: "/groups",      icon: "👥" },
+    ...(isAdmin ? [{ name: "Admin", path: "/admin", icon: "🛡️" }] : []),
 ];
 
   // ================= DESKTOP LINK CLASS =================

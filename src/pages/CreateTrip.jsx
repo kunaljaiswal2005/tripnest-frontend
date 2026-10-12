@@ -1,359 +1,435 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import MapboxSearch from "../components/MapboxSearch";
 import { tripAPI, itineraryAPI } from "../utils/api";
 
+const initialForm = {
+  title: "",
+  destination: "",
+  startDate: "",
+  endDate: "",
+  totalBudget: "",
+  description: "",
+  status: "PLANNING",
+};
+
+const inputClass =
+  "w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10";
+
+const labelClass =
+  "mb-2 block text-sm font-semibold text-slate-700";
+
 const CreateTrip = () => {
   const navigate = useNavigate();
 
+  const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const [form, setForm] = useState({
-    title: "",
-    destination: "",
-    startDate: "",
-    endDate: "",
-    totalBudget: "",
-    description: "",
-    status: "PLANNING",
-  });
+  const handleChange = (event) => {
+    const { name, value } = event.target;
 
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    setForm((previous) => ({
+      ...previous,
+      [name]: value,
+      ...(name === "startDate" &&
+      previous.endDate &&
+      value > previous.endDate
+        ? { endDate: "" }
+        : {}),
+    }));
+
+    if (error) setError("");
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleDestinationSelect = (place) => {
+    setForm((previous) => ({
+      ...previous,
+      destination: place?.name || "",
+    }));
 
-    setLoading(true);
+    setError("");
+  };
+
+  const getDuration = () => {
+    if (!form.startDate || !form.endDate) return null;
+
+    const start = new Date(`${form.startDate}T00:00:00`);
+    const end = new Date(`${form.endDate}T00:00:00`);
+    const difference = Math.round(
+      (end.getTime() - start.getTime()) / 86400000
+    );
+
+    return difference >= 0 ? difference + 1 : null;
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError("");
 
+    if (!form.destination.trim()) {
+      setError("Please select a destination from the search results.");
+      return;
+    }
+
+    if (form.startDate && form.endDate < form.startDate) {
+      setError("End date cannot be earlier than start date.");
+      return;
+    }
+
+    if (
+      form.totalBudget !== "" &&
+      (!Number.isFinite(Number(form.totalBudget)) ||
+        Number(form.totalBudget) < 0)
+    ) {
+      setError("Please enter a valid budget.");
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      const res = await tripAPI.create({
+      const payload = {
         ...form,
-        totalBudget: form.totalBudget
-          ? Number(form.totalBudget)
-          : null,
-      });
+        title: form.title.trim(),
+        destination: form.destination.trim(),
+        totalBudget:
+          form.totalBudget !== ""
+            ? Number(form.totalBudget)
+            : null,
+      };
 
-      const tripId = res.data.id;
+      const response = await tripAPI.create(payload);
+      const trip = response?.data;
 
-      // Automatically generate itinerary days
-      await itineraryAPI.generate(tripId);
+      const tripId = trip?.id ?? trip?._id;
+
+      if (tripId == null) {
+        throw new Error(
+          "Trip was created, but its ID was not returned by the server."
+        );
+      }
+
+      try {
+        await itineraryAPI.generate(tripId);
+      } catch (itineraryError) {
+        console.error("Itinerary generation failed:", itineraryError);
+
+        navigate(`/trips/${tripId}`, {
+          state: {
+            notice:
+              "Your trip was created. You can generate or edit your itinerary from the trip page.",
+          },
+        });
+
+        return;
+      }
 
       navigate(`/trips/${tripId}`);
     } catch (err) {
+      console.error("Create trip failed:", err);
+
       setError(
-        err.response?.data?.error ||
-          "Trip create failed! Please try again."
+        err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          err?.message ||
+          "Unable to create your trip. Please try again."
       );
     } finally {
       setLoading(false);
     }
   };
 
+  const duration = getDuration();
+
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-12">
-
-        {/* ================= TOP HEADER ================= */}
+      <main className="mx-auto max-w-7xl px-4 pb-14 pt-28 sm:px-6 lg:px-8">
+        {/* Page heading */}
         <div className="mb-8">
           <button
+            type="button"
             onClick={() => navigate("/trips")}
-            className="group flex items-center gap-2 text-sm text-slate-500 hover:text-blue-600 transition mb-5"
+            className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-blue-600"
           >
-            <span className="group-hover:-translate-x-1 transition-transform">
-              ←
-            </span>
-            Back to trips
+            <span>←</span> Back to trips
           </button>
 
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-xs font-semibold mb-3">
-                ✨ Plan your next adventure
-              </div>
+              <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700">
+                <span>✦</span> PLAN YOUR NEXT ADVENTURE
+              </span>
 
-              <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
-                Create a New Trip
-                <span className="ml-2">✈️</span>
+              <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">
+                Create a new trip
               </h1>
 
-              <p className="text-slate-500 mt-2 max-w-2xl text-sm sm:text-base">
-                Add your trip details and let TripNest help you organize your
-                journey with a day-wise itinerary.
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
+                Add your destination, travel dates and budget.
+                TripNest will help you organize your journey.
               </p>
             </div>
 
-            <div className="hidden md:flex items-center gap-2 text-sm text-slate-400">
-              <span className="w-2 h-2 rounded-full bg-blue-500" />
-              Step 1 of 1
+            <div className="hidden items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500 sm:flex">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
+                1
+              </span>
+              Trip details
             </div>
           </div>
         </div>
 
-        {/* ================= ERROR ================= */}
+        {/* Error message */}
         {error && (
-          <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 flex items-start gap-3">
-            <div className="w-9 h-9 shrink-0 rounded-xl bg-red-100 flex items-center justify-center">
+          <div
+            role="alert"
+            className="mb-6 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-100">
               ⚠️
-            </div>
+            </span>
 
-            <div>
-              <p className="text-sm font-semibold text-red-700">
-                Something went wrong
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-red-800">
+                Unable to continue
               </p>
-
-              <p className="text-sm text-red-600 mt-0.5">
+              <p className="mt-1 break-words text-sm text-red-700">
                 {error}
               </p>
             </div>
+
+            <button
+              type="button"
+              onClick={() => setError("")}
+              aria-label="Dismiss error"
+              className="text-red-500 hover:text-red-700"
+            >
+              ✕
+            </button>
           </div>
         )}
 
-        {/* ================= MAIN GRID ================= */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-          {/* ================= FORM ================= */}
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+          {/* Main form */}
+          <section className="min-w-0 lg:col-span-2">
             <form
               onSubmit={handleSubmit}
-              className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden"
+              className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
             >
-
-              {/* Form Header */}
-              <div className="px-6 sm:px-8 py-6 border-b border-slate-100">
+              <div className="border-b border-slate-100 px-5 py-6 sm:px-8">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center text-xl">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-xl">
                     🗺️
                   </div>
 
                   <div>
                     <h2 className="font-bold text-slate-900">
-                      Trip Details
+                      Trip details
                     </h2>
-
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Tell us about your upcoming journey
+                    <p className="mt-1 text-sm text-slate-500">
+                      Tell us about your journey
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="p-6 sm:p-8 space-y-6">
-
-                {/* ================= TITLE + DESTINATION ================= */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-                  {/* Title */}
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Trip Title
-                      <span className="text-blue-600 ml-1">*</span>
-                    </label>
-
-                    <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-lg">
-                        📝
-                      </span>
-
-                      <input
-                        type="text"
-                        name="title"
-                        value={form.title}
-                        onChange={handleChange}
-                        placeholder="e.g. Goa Adventure"
-                        className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {/* Destination - Mapbox */}
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Destination
-                      <span className="text-blue-600 ml-1">*</span>
-                    </label>
-
-                    <MapboxSearch
-                      placeholder="Search destination..."
-                      onPlaceSelect={(place) => {
-                        setForm((prev) => ({
-                          ...prev,
-                          destination: place.name,
-                        }));
-                      }}
-                    />
-
-                    {form.destination && (
-                      <p className="text-xs text-green-600 mt-2 flex items-center gap-1">
-                        <span>✅</span>
-                        {form.destination}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* ================= DATES ================= */}
+              <div className="space-y-6 p-5 sm:p-8">
+                {/* Trip title */}
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Travel Dates
-                    <span className="text-blue-600 ml-1">*</span>
+                  <label htmlFor="title" className={labelClass}>
+                    Trip title <span className="text-red-500">*</span>
                   </label>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-
-                    {/* Start Date */}
-                    <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-lg pointer-events-none">
-                        🗓️
-                      </span>
-
-                      <input
-                        type="date"
-                        name="startDate"
-                        value={form.startDate}
-                        onChange={handleChange}
-                        className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-700 outline-none transition-all focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                        required
-                      />
-
-                      <span className="absolute left-11 -top-2 px-1 bg-white text-[10px] text-slate-400">
-                        Start date
-                      </span>
-                    </div>
-
-                    {/* End Date */}
-                    <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-lg pointer-events-none">
-                        🏁
-                      </span>
-
-                      <input
-                        type="date"
-                        name="endDate"
-                        value={form.endDate}
-                        onChange={handleChange}
-                        min={form.startDate}
-                        className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-700 outline-none transition-all focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                        required
-                      />
-
-                      <span className="absolute left-11 -top-2 px-1 bg-white text-[10px] text-slate-400">
-                        End date
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* ================= BUDGET + STATUS ================= */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-                  {/* Budget */}
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Total Budget
-                    </label>
-
-                    <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-base font-bold text-slate-500">
-                        ₹
-                      </span>
-
-                      <input
-                        type="number"
-                        name="totalBudget"
-                        value={form.totalBudget}
-                        onChange={handleChange}
-                        min="0"
-                        placeholder="25,000"
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                      />
-                    </div>
-
-                    <p className="text-[11px] text-slate-400 mt-2">
-                      Optional — you can manage expenses later.
-                    </p>
-                  </div>
-
-                  {/* Status */}
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Trip Status
-                    </label>
-
-                    <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-lg pointer-events-none">
-                        📌
-                      </span>
-
-                      <select
-                        name="status"
-                        value={form.status}
-                        onChange={handleChange}
-                        className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-700 outline-none appearance-none transition-all focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                      >
-                        <option value="PLANNING">
-                          Planning
-                        </option>
-
-                        <option value="UPCOMING">
-                          Upcoming
-                        </option>
-
-                        <option value="ONGOING">
-                          Ongoing
-                        </option>
-                      </select>
-
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                        ▼
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* ================= DESCRIPTION ================= */}
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="text-sm font-semibold text-slate-700">
-                      Description
-                    </label>
-
-                    <span className="text-[11px] text-slate-400">
-                      Optional
-                    </span>
-                  </div>
-
-                  <textarea
-                    name="description"
-                    value={form.description}
+                  <input
+                    id="title"
+                    name="title"
+                    type="text"
+                    value={form.title}
                     onChange={handleChange}
-                    placeholder="What are you planning for this trip? Add some notes, goals or special requirements..."
-                    rows={5}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-sm text-slate-900 placeholder:text-slate-400 outline-none resize-none transition-all focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                    placeholder="e.g. Goa Summer Vacation"
+                    maxLength={100}
+                    required
+                    className={inputClass}
                   />
                 </div>
 
-                {/* ================= DIVIDER ================= */}
-                <div className="border-t border-slate-100" />
+                {/* Destination */}
+                <div>
+                  <label className={labelClass}>
+                    Destination <span className="text-red-500">*</span>
+                  </label>
 
-                {/* ================= BUTTONS ================= */}
-                <div className="flex flex-col-reverse sm:flex-row gap-3">
+                  <div className="rounded-xl">
+                    <MapboxSearch
+                      placeholder="Search city or destination..."
+                      onPlaceSelect={handleDestinationSelect}
+                    />
+                  </div>
 
+                  {form.destination && (
+                    <div className="mt-3 flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+                      <span>📍</span>
+                      <div className="min-w-0">
+                        <p className="text-xs text-emerald-700">
+                          Selected destination
+                        </p>
+                        <p className="truncate text-sm font-semibold text-emerald-800">
+                          {form.destination}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setForm((previous) => ({
+                            ...previous,
+                            destination: "",
+                          }))
+                        }
+                        className="ml-auto text-xs font-semibold text-emerald-700 hover:underline"
+                      >
+                        Change
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Travel dates */}
+                <div>
+                  <h3 className={labelClass}>
+                    Travel dates <span className="text-red-500">*</span>
+                  </h3>
+
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    <div>
+                      <label
+                        htmlFor="startDate"
+                        className="mb-2 block text-xs font-medium text-slate-500"
+                      >
+                        🗓️ Start date
+                      </label>
+                      <input
+                        id="startDate"
+                        name="startDate"
+                        type="date"
+                        value={form.startDate}
+                        onChange={handleChange}
+                        required
+                        className={inputClass}
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="endDate"
+                        className="mb-2 block text-xs font-medium text-slate-500"
+                      >
+                        🏁 End date
+                      </label>
+                      <input
+                        id="endDate"
+                        name="endDate"
+                        type="date"
+                        value={form.endDate}
+                        onChange={handleChange}
+                        min={form.startDate || undefined}
+                        required
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
+
+                  {duration !== null && (
+                    <p className="mt-3 inline-flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700">
+                      📅 {duration} {duration === 1 ? "day" : "days"} planned
+                    </p>
+                  )}
+                </div>
+
+                {/* Budget and status */}
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="totalBudget" className={labelClass}>
+                      Total budget
+                    </label>
+
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 font-semibold text-slate-500">
+                        ₹
+                      </span>
+                      <input
+                        id="totalBudget"
+                        name="totalBudget"
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={form.totalBudget}
+                        onChange={handleChange}
+                        placeholder="25,000"
+                        className={`${inputClass} pl-9`}
+                      />
+                    </div>
+
+                    <p className="mt-2 text-xs text-slate-400">
+                      Optional
+                    </p>
+                  </div>
+
+                  <div>
+                    <label htmlFor="status" className={labelClass}>
+                      Trip status
+                    </label>
+
+                    <select
+                      id="status"
+                      name="status"
+                      value={form.status}
+                      onChange={handleChange}
+                      className={inputClass}
+                    >
+                      <option value="PLANNING">Planning</option>
+                      <option value="UPCOMING">Upcoming</option>
+                      <option value="ONGOING">Ongoing</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <label htmlFor="description" className={labelClass}>
+                      Trip description
+                    </label>
+                    <span className="text-xs text-slate-400">Optional</span>
+                  </div>
+
+                  <textarea
+                    id="description"
+                    name="description"
+                    value={form.description}
+                    onChange={handleChange}
+                    placeholder="What do you want to explore? Add notes or special requirements..."
+                    rows={4}
+                    maxLength={1000}
+                    className={`${inputClass} resize-y`}
+                  />
+
+                  <p className="mt-1 text-right text-xs text-slate-400">
+                    {form.description.length}/1000
+                  </p>
+                </div>
+
+                {/* Buttons */}
+                <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row">
                   <button
                     type="button"
                     onClick={() => navigate("/trips")}
                     disabled={loading}
-                    className="sm:flex-1 py-3.5 px-5 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-50"
+                    className="rounded-xl border border-slate-200 bg-white px-5 py-3.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-50 sm:flex-1"
                   >
                     Cancel
                   </button>
@@ -361,190 +437,125 @@ const CreateTrip = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="sm:flex-[2] py-3.5 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 hover:-translate-y-0.5 transition-all disabled:opacity-60 disabled:hover:translate-y-0 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 sm:flex-[2]"
                   >
                     {loading ? (
                       <>
-                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Creating your trip...
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                        Creating trip...
                       </>
                     ) : (
                       <>
-                        Create Trip
-                        <span>→</span>
+                        Create trip <span>→</span>
                       </>
                     )}
                   </button>
                 </div>
               </div>
             </form>
-          </div>
+          </section>
 
-          {/* ================= SIDEBAR ================= */}
-          <aside className="lg:col-span-1">
-            <div className="lg:sticky lg:top-28 space-y-5">
+          {/* Sidebar */}
+          <aside className="min-w-0 space-y-5 lg:sticky lg:top-28">
+            {/* Live preview */}
+            <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+              <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 p-6">
+                <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/10" />
+                <div className="absolute -bottom-16 -left-10 h-40 w-40 rounded-full bg-white/10" />
 
-              {/* Preview Card */}
-              <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
+                <div className="relative">
+                  <span className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-bold tracking-wider text-white">
+                    LIVE PREVIEW
+                  </span>
 
-                <div className="relative h-40 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 overflow-hidden">
-
-                  <div className="absolute -right-8 -top-10 w-40 h-40 rounded-full bg-white/10" />
-
-                  <div className="absolute -left-10 -bottom-16 w-48 h-48 rounded-full bg-white/5" />
-
-                  <div className="relative z-10 h-full flex flex-col justify-between p-5">
-
-                    <div className="flex justify-between items-start">
-                      <span className="px-2.5 py-1 rounded-full bg-white/15 border border-white/20 text-white text-[10px] font-semibold backdrop-blur-sm">
-                        TRIP PREVIEW
-                      </span>
-
-                      <span className="text-3xl">
-                        ✈️
-                      </span>
-                    </div>
-
-                    <div>
-                      <p className="text-white/70 text-xs">
-                        Your next adventure
-                      </p>
-
-                      <h3 className="text-xl font-bold text-white mt-1 truncate">
-                        {form.title || "Your Trip"}
-                      </h3>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-5 space-y-4">
-
-                  {/* Destination */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
-                      📍
-                    </div>
-
-                    <div className="min-w-0">
-                      <p className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold">
-                        Destination
-                      </p>
-
-                      <p className="text-sm font-semibold text-slate-800 truncate">
-                        {form.destination || "Not selected"}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Dates */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-purple-50 flex items-center justify-center">
-                      📅
-                    </div>
-
-                    <div className="min-w-0">
-                      <p className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold">
-                        Travel dates
-                      </p>
-
-                      <p className="text-sm font-semibold text-slate-800">
-                        {form.startDate && form.endDate
-                          ? `${form.startDate} → ${form.endDate}`
-                          : "Dates not selected"}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Budget */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
-                      💰
-                    </div>
-
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold">
-                        Budget
-                      </p>
-
-                      <p className="text-sm font-semibold text-slate-800">
-                        {form.totalBudget
-                          ? `₹${Number(
-                              form.totalBudget
-                            ).toLocaleString("en-IN")}`
-                          : "Not set"}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Status */}
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-xs text-slate-500">
-                      Status
-                    </span>
-
-                    <span className="px-2.5 py-1 rounded-full bg-purple-50 text-purple-600 border border-purple-100 text-[10px] font-bold">
-                      {form.status}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Info Card */}
-              <div className="rounded-3xl bg-slate-900 p-5 relative overflow-hidden">
-
-                <div className="absolute -right-8 -top-8 w-28 h-28 rounded-full bg-blue-500/10" />
-
-                <div className="relative z-10">
-
-                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-xl mb-4">
-                    💡
-                  </div>
-
-                  <h3 className="font-bold text-white">
-                    What happens next?
-                  </h3>
-
-                  <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-                    After creating your trip, TripNest will automatically
-                    generate the itinerary days based on your travel dates.
+                  <p className="mt-5 text-sm text-blue-100">
+                    Your next adventure
                   </p>
+                  <h2 className="mt-1 break-words text-2xl font-black text-white">
+                    {form.title.trim() || "Your trip title"}
+                  </h2>
 
-                  <div className="mt-4 space-y-3">
-
-                    <div className="flex gap-3 items-center">
-                      <span className="w-6 h-6 rounded-full bg-blue-500/15 text-blue-400 text-[10px] font-bold flex items-center justify-center">
-                        1
-                      </span>
-
-                      <span className="text-xs text-slate-300">
-                        Trip gets created
-                      </span>
-                    </div>
-
-                    <div className="flex gap-3 items-center">
-                      <span className="w-6 h-6 rounded-full bg-blue-500/15 text-blue-400 text-[10px] font-bold flex items-center justify-center">
-                        2
-                      </span>
-
-                      <span className="text-xs text-slate-300">
-                        Itinerary days are generated
-                      </span>
-                    </div>
-
-                    <div className="flex gap-3 items-center">
-                      <span className="w-6 h-6 rounded-full bg-blue-500/15 text-blue-400 text-[10px] font-bold flex items-center justify-center">
-                        3
-                      </span>
-
-                      <span className="text-xs text-slate-300">
-                        Start customizing your trip
-                      </span>
-                    </div>
-
+                  <div className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white/15 px-3 py-2 text-sm text-white backdrop-blur">
+                    📍 {form.destination || "Choose a destination"}
                   </div>
                 </div>
               </div>
-            </div>
+
+              <div className="space-y-4 p-5">
+                <div className="flex items-start gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50">
+                    📅
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs text-slate-400">Travel dates</p>
+                    <p className="mt-1 break-words text-sm font-semibold text-slate-800">
+                      {form.startDate && form.endDate
+                        ? `${form.startDate} → ${form.endDate}`
+                        : "Dates not selected"}
+                    </p>
+                    {duration !== null && (
+                      <p className="mt-1 text-xs text-blue-600">
+                        {duration} {duration === 1 ? "day" : "days"}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50">
+                    💰
+                  </span>
+                  <div>
+                    <p className="text-xs text-slate-400">Budget</p>
+                    <p className="mt-1 text-sm font-semibold text-slate-800">
+                      {form.totalBudget !== "" &&
+                      Number(form.totalBudget) >= 0
+                        ? `₹${Number(form.totalBudget).toLocaleString("en-IN")}`
+                        : "Not set"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
+                  <span className="text-xs text-slate-500">Current status</span>
+                  <span className="rounded-full border border-violet-100 bg-violet-50 px-3 py-1 text-[10px] font-bold text-violet-700">
+                    {form.status}
+                  </span>
+                </div>
+              </div>
+            </section>
+
+            {/* Next steps */}
+            <section className="relative overflow-hidden rounded-3xl bg-slate-900 p-5">
+              <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-blue-500/10" />
+
+              <div className="relative">
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/15 text-xl">
+                  💡
+                </div>
+
+                <h3 className="font-bold text-white">What happens next?</h3>
+                <p className="mt-2 text-xs leading-6 text-slate-400">
+                  Once your trip is created, TripNest attempts to generate
+                  itinerary days automatically.
+                </p>
+
+                <div className="mt-5 space-y-4">
+                  {[
+                    "Your trip is saved",
+                    "Itinerary generation is attempted",
+                    "You can customize your travel plan",
+                  ].map((item, index) => (
+                    <div key={item} className="flex items-center gap-3">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-500/15 text-xs font-bold text-blue-300">
+                        {index + 1}
+                      </span>
+                      <span className="text-xs text-slate-300">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
           </aside>
         </div>
       </main>

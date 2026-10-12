@@ -164,6 +164,15 @@ export const tripMemberAPI = {
     getPending:  () =>
         api.get('/api/trips/invitations/pending'),
 };
+// ── Dashboard APIs ──
+export const dashboardAPI = {
+    getTravelerDashboard: () =>
+        api.get('/api/dashboard'),
+    getAdminDashboard: () =>
+        api.get('/api/admin/dashboard'),
+    getTripReport: (tripId) =>
+        api.get(`/api/reports/trips/${tripId}`),
+};
 
 
 export default api;

@@ -140,11 +140,10 @@ const Analytics = () => {
     };
 
     const handleTripSelect = (e) => {
-        const id = e.target.value;
-        setSelectedTrip(id);
-        if (id) fetchTripReport(id);
-        else setReport(null);
-    };
+    const id = e.target.value;
+    setSelectedTrip(id);
+    if (id) navigate(`/reports/trips/${id}`);
+};
 
     // ============================================================
     // DATA TRANSFORMS
