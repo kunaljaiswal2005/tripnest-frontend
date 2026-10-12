@@ -20,6 +20,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import TripReport     from './pages/TripReport';
 import Settlement  from './pages/Settlement';
 import TripExpenses from './pages/TripExpenses';
+import Profile from './pages/Profile';
 
 
 const PrivateRoute = ({ children }) => {
@@ -78,8 +79,10 @@ const AppRoutes = () => (
     <PrivateRoute><TripReport /></PrivateRoute>} />
     <Route path="/trips/:id/settlement" element={
     <PrivateRoute><Settlement /></PrivateRoute>} />
-<Route path="/trips/:id/expenses" element={
+    <Route path="/trips/:id/expenses" element={
     <PrivateRoute><TripExpenses /></PrivateRoute>} />
+    <Route path="/profile" element={
+    <PrivateRoute><Profile /></PrivateRoute>} />
 
   </Routes>
 );
