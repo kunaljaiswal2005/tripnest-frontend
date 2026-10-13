@@ -50,9 +50,9 @@ const Expenses = () => {
       setExpenses(expRes.data);
       setSummary(sumRes.data);
 
-      // fetch group members for this trip
       try {
         const memRes = await tripMemberAPI.getMembers(tripId);
+        console.log("Members data:", memRes.data); // ← YE ADD KARO
         setMembers(memRes.data || []);
       } catch {
         setMembers([]);
@@ -342,8 +342,11 @@ const Expenses = () => {
                       <p className="text-xs font-medium text-slate-500">
                         Select members to split with:
                       </p>
-                      {members.map((member) => {
-                        const userId   = member.user?.id || member.userId || member.id;
+                      {members.filter((member) => {
+                        const userId = member.user?.id || member.userId;
+                        return !!userId;
+                      }).map((member) => {
+                        const userId = member.user?.id || member.userId;
                         const name     = member.user?.name || member.name || "Member";
                         const email    = member.user?.email || member.email || "";
                         const selected = form.members.find((m) => m.userId === userId);
