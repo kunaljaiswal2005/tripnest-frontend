@@ -116,19 +116,18 @@ const Login = () => {
 
         {/* Google Login Button */}
         <a
-          href="http://localhost:8080/oauth2/authorization/google"
-          className="w-full flex items-center justify-center gap-3 border border-gray-300 rounded py-2 hover:bg-gray-50 transition"
-        >
-          <img
-            src="https://www.google.com/favicon.ico"
-            alt="Google"
-            className="w-5 h-5"
-          />
-
-          <span className="text-sm font-medium text-gray-700">
-            Login with Google
-          </span>
-        </a>
+  href={`${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/google`}
+  className="w-full flex items-center justify-center gap-3 border border-gray-300 rounded py-2 hover:bg-gray-50 transition"
+>
+  <img
+    src="https://www.google.com/favicon.ico"
+    alt="Google"
+    className="w-5 h-5"
+  />
+  <span className="text-sm font-medium text-gray-700">
+    Login with Google
+  </span>
+</a>
 
         {/* Register */}
         <p className="text-center mt-6 text-slate-500">
