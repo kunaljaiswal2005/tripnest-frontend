@@ -84,21 +84,7 @@ const Register = () => {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Role
-            </label>
-            <select
-              name="role"
-              value={form.role}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="TRAVELER">Traveler</option>
-              <option value="GROUP_ADMIN">Group Admin</option>
-              <option value="ADMIN">Admin</option>
-            </select>
-          </div>
+          {/* Role dropdown hata diya — default TRAVELER rahega */}
 
           <button
             type="submit"
