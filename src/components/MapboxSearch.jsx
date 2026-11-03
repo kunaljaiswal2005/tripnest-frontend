@@ -1,6 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { searchPlaces } from '../utils/mapboxAPI';
 
+// Real place photo (not a map) — keyed off the place/area name,
+// since Mapbox's geocoder has no photo API of its own.
+const getPlacePhotoUrl = (name) =>
+    `https://source.unsplash.com/80x80/?`
+    + `${encodeURIComponent(name)},travel`;
+
 const MapboxSearch = ({
     onPlaceSelect,
     placeholder = 'Search places...',
@@ -113,8 +119,26 @@ const MapboxSearch = ({
                                 hover:bg-blue-50 transition"
                         >
                             <div className="flex items-start gap-3">
-                                <span className="text-lg mt-0.5
-                                                 shrink-0">
+                                <img
+                                    src={getPlacePhotoUrl(
+                                        place.name)}
+                                    alt={place.name}
+                                    loading="lazy"
+                                    onError={(e) => {
+                                        e.currentTarget.style.display
+                                            = 'none';
+                                        e.currentTarget
+                                            .nextSibling.style.display
+                                            = 'flex';
+                                    }}
+                                    className="w-10 h-10 shrink-0
+                                        rounded-lg object-cover
+                                        border border-slate-100"
+                                />
+                                <span className="hidden w-10 h-10
+                                    shrink-0 rounded-lg bg-slate-100
+                                    text-lg items-center
+                                    justify-center">
                                     📍
                                 </span>
                                 <div className="min-w-0">
