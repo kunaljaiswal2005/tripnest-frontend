@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import MapboxSearch from "../components/MapboxSearch";
 import { tripAPI, itineraryAPI } from "../utils/api";
@@ -23,8 +22,12 @@ const labelClass =
 
 const CreateTrip = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] = useState(() => ({
+    ...initialForm,
+    destination: location.state?.destination || "",
+  }));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
