@@ -271,6 +271,7 @@ const CreateTrip = () => {
                     <MapboxSearch
                       placeholder="Search city or destination..."
                       onPlaceSelect={handleDestinationSelect}
+                      initialValue={form.destination}
                     />
                   </div>
 

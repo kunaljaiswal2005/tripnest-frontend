@@ -6,13 +6,22 @@ const MapboxSearch = ({
     placeholder = 'Search places...',
     className   = '',
     proximity   = null,
+    initialValue = '',
 }) => {
-    const [query,       setQuery]       = useState('');
+    const [query,       setQuery]       = useState(initialValue);
     const [results,     setResults]     = useState([]);
     const [loading,     setLoading]     = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const debounceRef   = useRef(null);
     const wrapperRef    = useRef(null);
+
+    // Keep input in sync if initialValue arrives/changes after mount
+    // (e.g. destination passed via navigation state)
+    useEffect(() => {
+        if (initialValue) {
+            setQuery(initialValue);
+        }
+    }, [initialValue]);
 
     // Close dropdown on outside click
     useEffect(() => {
